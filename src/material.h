@@ -17,22 +17,31 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QString>
 
-namespace Ui {
-  class UIMainWindow;
-}
-
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
+class Material {
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  enum class MaterialType : unsigned int {
+    COPPER,
+    CORE,
+    NONE,
+    PREPREG
+  };
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
+  Material();
+  Material(QString name, MaterialType type, double e);
+  ~Material();
+
+  QString name() const;
+  MaterialType type() const;
+  double dielectricCoefficient() const;
+
+  bool isValid() const;
+
+  static QString typeString(const MaterialType& type);
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  QString m_name;
+  MaterialType m_type;
+  double m_dielectricCoeff = 0;
 };

@@ -16,11 +16,19 @@ find_package(Boost 1.75.0 REQUIRED)
 
 set(srcs
 	main.cxx
+	material.cxx
+	materialmanager.cxx
+	stackupmodel.cxx
+	stackupproxymodel.cxx
+	uiabout.cxx
 	uimainwindow.cxx
+	uistackup.cxx
 )
 
 set(ui_files
+	uiabout.ui
 	uimainwindow.ui
+	uistackup.ui
 )
 
 set(qrc_files

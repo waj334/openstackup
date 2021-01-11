@@ -17,22 +17,38 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QObject>
+#include <QSharedPointer>
 
-namespace Ui {
-  class UIMainWindow;
-}
+class IManager : public QObject {
+protected:
+  IManager() : QObject(){}
+};
 
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
+template<typename T>
+class Manager : public IManager {
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  static QSharedPointer<T> instance();
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
+protected:
+  explicit Manager() :
+    IManager()
+  {
+
+  }
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  static QSharedPointer<IManager> mp_instance;
 };
+
+template<typename T>
+QSharedPointer<IManager> Manager<T>::mp_instance = nullptr;
+
+template<typename T>
+inline QSharedPointer<T> Manager<T>::instance() {
+  if (mp_instance == nullptr) {
+    mp_instance.reset(new T());
+  }
+
+  return mp_instance.dynamicCast<T>();
+}

@@ -1,1 +1,5 @@
-<RCC/>
+<RCC>
+  <qresource prefix="/">
+    <file>resources/images/openstackup_logo.svg</file>
+  </qresource>
+</RCC>

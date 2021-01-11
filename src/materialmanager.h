@@ -17,22 +17,19 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "manager.h"
+#include "material.h"
 
-namespace Ui {
-  class UIMainWindow;
-}
+#include <QMap>
 
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
+class MaterialManager : public Manager<MaterialManager>
+{
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+	explicit MaterialManager();
+	~MaterialManager();
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
+	const Material get(const QString& name) const;
 
 private:
-  Ui::UIMainWindow* mp_ui;
+	QMap<QString, Material> m_materials;
 };

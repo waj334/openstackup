@@ -17,22 +17,9 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "material.h"
 
-namespace Ui {
-  class UIMainWindow;
-}
-
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
-public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
-
-public slots:
-  void onAbout();
-  void onStackupSettings();
-
-private:
-  Ui::UIMainWindow* mp_ui;
+struct Layer {
+  Material m_material;
+  double m_thickness = 0;
 };

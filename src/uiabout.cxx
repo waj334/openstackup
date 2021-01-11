@@ -15,40 +15,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "uimainwindow.h"
-#include "ui_uimainwindow.h"
-
 #include "uiabout.h"
-#include "uistackup.h"
+#include "ui_uiabout.h"
 
-
-UIMainWindow::UIMainWindow(QWidget* parent) :
-  QMainWindow(parent),
-  mp_ui(new Ui::UIMainWindow)
+UIAbout::UIAbout(QWidget* parent) :
+  QDialog(parent),
+  mp_ui(new Ui::UIAbout)
 {
   mp_ui->setupUi(this);
-
-  connect(mp_ui->actionAbout_Open_Stackup, &QAction::triggered,
-    this, &UIMainWindow::onAbout);
-  connect(mp_ui->actionStackup_Settings, &QAction::triggered,
-    this, &UIMainWindow::onStackupSettings);
 }
 
-UIMainWindow::~UIMainWindow()
+UIAbout::~UIAbout()
 {
   delete mp_ui;
-}
-
-void UIMainWindow::onAbout()
-{
-  UIAbout* about = new UIAbout(this);
-  about->setAttribute(Qt::WA_DeleteOnClose);
-  about->exec();
-}
-
-void UIMainWindow::onStackupSettings()
-{
-  UIStackup* stackup = new UIStackup(this);
-  stackup->setAttribute(Qt::WA_DeleteOnClose);
-  stackup->exec();
 }

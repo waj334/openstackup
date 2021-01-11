@@ -17,22 +17,27 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "layer.h"
+
+#include <QDialog>
+
+#include <array>
 
 namespace Ui {
-  class UIMainWindow;
+  class UIStackup;
 }
 
-class UIMainWindow : public QMainWindow {
+class UIStackup : public QDialog {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  explicit UIStackup(QWidget* parent = nullptr);
+  ~UIStackup();
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
+private slots:
+  void onLayerCountChanged(int count);
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  using LayerArray = std::array<Layer, 31>;
+  Ui::UIStackup* mp_ui;
+  LayerArray m_layers;
 };

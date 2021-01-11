@@ -15,24 +15,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "materialmanager.h"
 
-#include <QMainWindow>
-
-namespace Ui {
-  class UIMainWindow;
+MaterialManager::MaterialManager()
+{
 }
 
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
-public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+MaterialManager::~MaterialManager()
+{
+}
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
+const Material MaterialManager::get(const QString& name) const
+{
+  Material material;
 
-private:
-  Ui::UIMainWindow* mp_ui;
-};
+  auto it = m_materials.find(name);
+  if (it != m_materials.end()) {
+    material = it.value();
+  }
+
+  return material;
+}

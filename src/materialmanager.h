@@ -17,10 +17,12 @@
 
 #pragma once
 
+#include "enums.h"
 #include "manager.h"
 #include "material.h"
 
 #include <QMap>
+#include <QMetaType>
 
 class MaterialManager : public Manager<MaterialManager>
 {
@@ -29,6 +31,9 @@ public:
 	~MaterialManager();
 
 	const Material get(const QString& name) const;
+	void getAll(QList<Material>& materials) const;
+
+	static QString typeString(const MaterialClass& type);
 
 private:
 	QMap<QString, Material> m_materials;

@@ -17,22 +17,13 @@
 
 #pragma once
 
-#include "enums.h"
-#include "material.h"
+#include <QMetaType>
 
-class Layer {
-public:
-  const Material material() const;
-  void setMaterial(const Material& mat);
-
-  double thickness() const;
-  void setThickness(const double& thickness);
-
-  MaterialClass materialClass() const;
-  void setMaterialClass(const MaterialClass& mclass);
-
-private:
-  Material m_material;
-  double m_thickness = 0;
-  MaterialClass m_class = MaterialClass::NONE;
+enum class MaterialClass : unsigned int {
+	COPPER,
+	CORE,
+	NONE,
+	PREPREG
 };
+
+Q_DECLARE_METATYPE(MaterialClass)

@@ -17,22 +17,18 @@
 
 #pragma once
 
-#include "enums.h"
-#include "material.h"
+#include <QStyledItemDelegate>
 
-class Layer {
+class StackupDelegate : public QStyledItemDelegate {
+  Q_OBJECT
 public:
-  const Material material() const;
-  void setMaterial(const Material& mat);
+  StackupDelegate(QObject* parent = nullptr);
 
-  double thickness() const;
-  void setThickness(const double& thickness);
+  QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, 
+    const QModelIndex& index) const override;
 
-  MaterialClass materialClass() const;
-  void setMaterialClass(const MaterialClass& mclass);
+  void setEditorData(QWidget* editor, const QModelIndex& index) const override;
 
-private:
-  Material m_material;
-  double m_thickness = 0;
-  MaterialClass m_class = MaterialClass::NONE;
+  void setModelData(QWidget* editor, QAbstractItemModel* model,
+    const QModelIndex& index) const override;
 };

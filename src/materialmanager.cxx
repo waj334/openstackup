@@ -36,3 +36,33 @@ const Material MaterialManager::get(const QString& name) const
 
   return material;
 }
+
+void MaterialManager::getAll(QList<Material>& materials) const
+{
+  materials = m_materials.values();
+}
+
+QString MaterialManager::typeString(const MaterialClass& type)
+{
+  QString typeStr = "Unknown";
+
+  switch (type) {
+  case MaterialClass::COPPER:
+    typeStr = "Copper";
+    break;
+  case MaterialClass::CORE:
+    typeStr = "Core";
+    break;
+  case MaterialClass::NONE:
+    typeStr = "None";
+    break;
+  case MaterialClass::PREPREG:
+    typeStr = "Prepreg";
+    break;
+  default:
+    //Do nothing
+    break;
+  }
+
+  return typeStr;
+}

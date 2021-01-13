@@ -15,6 +15,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "enums.h"
+#include "materialmanager.h"
 #include "stackupmodel.h"
 
 constexpr int MAX_COLUMN = 4;
@@ -73,27 +75,28 @@ QVariant StackupModel::data(const QModelIndex& index, int role) const
         }
         break;
       case 1:
-        data = Material::typeString(layer->m_material.type());
+        data = MaterialManager::typeString(layer->materialClass());
         break;
       case 2:
-        data = layer->m_material.name();
+        data = layer->material().name();
         break;
       case 3:
         data = QString("%1 %2")
-          .arg(QString::number(layer->m_thickness, 'g', 2))
+          .arg(layer->thickness(), 0, 'f', 9)
           .arg("mm"); //TODO: Handle units
       }
       break;
     case Qt::EditRole:
       switch (index.column()) {
       case 1:
-        data = Material::typeString(layer->m_material.type());
+        data = QVariant::fromValue<MaterialClass>(layer->materialClass());
         break;
       case 2:
-        data = layer->m_material.name();
+        data = QVariant::fromValue<Material>(layer->material());
         break;
       case 3:
-        data = layer->m_thickness;
+        data = layer->thickness();
+        break;
       }
       break;
     }
@@ -126,4 +129,46 @@ QVariant StackupModel::headerData(int section, Qt::Orientation orientation, int 
   }
 
   return data;
+}
+
+Qt::ItemFlags StackupModel::flags(const QModelIndex& index) const
+{
+  Qt::ItemFlags flags = Qt::ItemIsEnabled;
+
+  if (index.column() > 0) {
+    flags |= Qt::ItemIsEditable;
+  }
+
+  return flags;
+}
+
+bool StackupModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  bool ok = false;
+  
+  if (index.isValid()) {
+    Layer* layer = static_cast<Layer*>(index.internalPointer());
+    if (role == Qt::EditRole) {
+      switch (index.column()) {
+      case 1:
+        layer->setMaterialClass(value.value<MaterialClass>());
+        ok = true;
+        break;
+      case 2:
+        layer->setMaterial(value.value<Material>());
+        ok = true;
+        break;
+      case 3:
+        layer->setThickness(value.toDouble());
+        ok = true;
+        break;
+      }
+
+      if (ok) {
+        emit dataChanged(index, index, QVector<int>() << Qt::EditRole);
+      }
+    }
+  }
+
+  return ok;
 }

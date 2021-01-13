@@ -18,6 +18,7 @@
 #include "uistackup.h"
 #include "ui_uistackup.h"
 
+#include "stackupdelegate.h"
 #include "stackupmodel.h"
 #include "stackupproxymodel.h"
 
@@ -33,6 +34,7 @@ UIStackup::UIStackup(QWidget* parent) :
   proxy->setSourceModel(model);
 
   mp_ui->stackupTable->setModel(proxy);
+  mp_ui->stackupTable->setItemDelegate(new StackupDelegate(this));
 
   connect(mp_ui->layerCountSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), 
     this, &UIStackup::onLayerCountChanged);

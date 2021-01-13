@@ -17,31 +17,32 @@
 
 #pragma once
 
+#include "enums.h"
+
+#include <QMetaType>
 #include <QString>
 
 class Material {
 public:
-  enum class MaterialType : unsigned int {
-    COPPER,
-    CORE,
-    NONE,
-    PREPREG
-  };
-
   Material();
-  Material(QString name, MaterialType type, double e);
+  Material(QString name, MaterialClass mclass, double e);
   ~Material();
 
   QString name() const;
-  MaterialType type() const;
+  void setName(const QString& name);
+
+  MaterialClass materialClass() const;
+  void setMaterialClass(const MaterialClass& mclass);
+
   double dielectricCoefficient() const;
+  void setDielectricCoefficient(const double& e);
 
   bool isValid() const;
 
-  static QString typeString(const MaterialType& type);
-
 private:
   QString m_name;
-  MaterialType m_type;
+  MaterialClass m_class;
   double m_dielectricCoeff = 0;
 };
+
+Q_DECLARE_METATYPE(Material)

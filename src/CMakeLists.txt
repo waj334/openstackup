@@ -15,9 +15,11 @@ find_package(Qt5
 find_package(Boost 1.75.0 REQUIRED)
 
 set(srcs
+	layer.cxx
 	main.cxx
 	material.cxx
 	materialmanager.cxx
+	stackupdelegate.cxx
 	stackupmodel.cxx
 	stackupproxymodel.cxx
 	uiabout.cxx

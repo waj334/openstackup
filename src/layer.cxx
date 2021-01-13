@@ -15,24 +15,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "layer.h"
 
-#include "enums.h"
-#include "material.h"
+const Material Layer::material() const {
+  return m_material;
+}
 
-class Layer {
-public:
-  const Material material() const;
-  void setMaterial(const Material& mat);
+void Layer::setMaterial(const Material& mat) {
+  m_material = mat;
+}
 
-  double thickness() const;
-  void setThickness(const double& thickness);
+double Layer::thickness() const {
+  return m_thickness;
+}
+void Layer::setThickness(const double& thickness) {
+  m_thickness = thickness;
+}
 
-  MaterialClass materialClass() const;
-  void setMaterialClass(const MaterialClass& mclass);
+MaterialClass Layer::materialClass() const {
+  return m_class;
+}
 
-private:
-  Material m_material;
-  double m_thickness = 0;
-  MaterialClass m_class = MaterialClass::NONE;
-};
+void Layer::setMaterialClass(const MaterialClass& mclass) {
+  m_class = mclass;
+}

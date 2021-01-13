@@ -18,14 +18,14 @@
 #include "material.h"
 
 Material::Material() :
-  Material("", MaterialType::NONE, 0)
+  Material("", MaterialClass::NONE, 0)
 {
   //Does nothing
 }
 
-Material::Material(QString name, MaterialType type, double e) :
+Material::Material(QString name, MaterialClass mclass, double e) :
   m_name(name),
-  m_type(type),
+  m_class(mclass),
   m_dielectricCoeff(e)
 {
 
@@ -41,9 +41,19 @@ QString Material::name() const
   return m_name;
 }
 
-Material::MaterialType Material::type() const
+void Material::setName(const QString& name)
 {
-  return m_type;
+  m_name = name;
+}
+
+MaterialClass Material::materialClass() const
+{
+  return m_class;
+}
+
+void Material::setMaterialClass(const MaterialClass& mclass)
+{
+  m_class = mclass;
 }
 
 double Material::dielectricCoefficient() const
@@ -51,33 +61,13 @@ double Material::dielectricCoefficient() const
   return m_dielectricCoeff;
 }
 
+void Material::setDielectricCoefficient(const double& e)
+{
+  m_dielectricCoeff = e;
+}
+
 bool Material::isValid() const
 {
   return !m_name.isEmpty() && m_dielectricCoeff >= 1 
-    && m_type != MaterialType::NONE;
-}
-
-QString Material::typeString(const MaterialType& type)
-{
-  QString typeStr = "Unknown";
-
-  switch (type) {
-  case MaterialType::COPPER:
-    typeStr = "Copper";
-    break;
-  case MaterialType::CORE:
-    typeStr = "Core";
-    break;
-  case MaterialType::NONE:
-    typeStr = "None";
-    break;
-  case MaterialType::PREPREG:
-    typeStr = "Prepreg";
-    break;
-  default:
-    //Do nothing
-    break;
-  }
-
-  return typeStr;
+    && m_class != MaterialClass::NONE;
 }

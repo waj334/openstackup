@@ -20,8 +20,11 @@
 #include "layer.h"
 
 #include <QDialog>
+#include <QGraphicsScene>
 
 #include <array>
+
+class StackupProxyModel;
 
 namespace Ui {
   class UIStackup;
@@ -35,9 +38,13 @@ public:
 
 private slots:
   void onLayerCountChanged(int count);
+  void updateScene();
 
 private:
   using LayerArray = std::array<Layer, 31>;
   Ui::UIStackup* mp_ui;
   LayerArray m_layers;
+
+  StackupProxyModel* mp_proxy;
+  QGraphicsScene* mp_scene;
 };

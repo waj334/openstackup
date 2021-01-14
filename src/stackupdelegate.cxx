@@ -108,9 +108,12 @@ void StackupDelegate::setEditorData(QWidget* editor, const QModelIndex& index) c
   }
   else if (index.column() == 3) {
     QLineEdit* le = qobject_cast<QLineEdit*>(editor);
-    le->setText(
-      QString("%1 mm")
-      .arg(index.data().toDouble(), 0, 'f', 9));
+    double value = index.data(Qt::EditRole).toDouble();
+
+    QString str = QString("%1 mm")
+      .arg(value, 0, 'f', 9);
+
+    le->setText(str);
   }
   else {
     QStyledItemDelegate::setEditorData(editor, index);

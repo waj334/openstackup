@@ -47,8 +47,8 @@ QWidget* StackupDelegate::createEditor(QWidget* parent, const QStyleOptionViewIt
   }
   else if (index.column() == 2) {
     QComboBox* cb = new QComboBox(parent);
-    QList<Material> mats;
-    MaterialManager::instance()->getAll(mats);
+    MaterialManager::MaterialList mats
+      = MaterialManager::instance()->materials();
     
     //Get selected material type
     auto type = index.siblingAtColumn(1).data(Qt::EditRole).value<MaterialClass>();

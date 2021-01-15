@@ -19,30 +19,45 @@
 
 #include "enums.h"
 
+#include <QList>
 #include <QMetaType>
 #include <QString>
 
 class Material {
 public:
+  struct Permittivity {
+    quint32 m_frequency;
+    double m_dk;
+  };
+
+  using PermittivityList = QList<Permittivity>;
+
   Material();
-  Material(QString name, MaterialClass mclass, double e);
+  Material(QString name, MaterialClass mclass);
   ~Material();
 
   QString name() const;
   void setName(const QString& name);
 
+  QString manufacturer() const;
+  void setManufacturer(const QString& manufacturer);
+
   MaterialClass materialClass() const;
   void setMaterialClass(const MaterialClass& mclass);
 
-  double dielectricCoefficient() const;
-  void setDielectricCoefficient(const double& e);
+  PermittivityList& permittivityList();
+  const PermittivityList& permittivityList() const;
+
+  double permittivity(int frequency);
 
   bool isValid() const;
 
 private:
   QString m_name;
+  QString m_manufacturer;
+
   MaterialClass m_class;
-  double m_dielectricCoeff = 0;
+  PermittivityList m_dkList;
 };
 
 Q_DECLARE_METATYPE(Material)

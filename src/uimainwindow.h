@@ -32,6 +32,7 @@ public:
 public slots:
   void onAbout();
   void onStackupSettings();
+  void onMaterials();
 
 private:
   Ui::UIMainWindow* mp_ui;

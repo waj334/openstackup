@@ -19,17 +19,20 @@ set(srcs
 	main.cxx
 	material.cxx
 	materialmanager.cxx
+	materialmodel.cxx
 	stackupdelegate.cxx
 	stackupmodel.cxx
 	stackupproxymodel.cxx
 	uiabout.cxx
 	uimainwindow.cxx
+	uimaterials.cxx
 	uistackup.cxx
 )
 
 set(ui_files
 	uiabout.ui
 	uimainwindow.ui
+	uimaterials.ui
 	uistackup.ui
 )
 

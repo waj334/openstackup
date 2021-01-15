@@ -1,0 +1,135 @@
+/*
+ * This file is part of the Open Stackup distribution (https://github.com/waj334/openstackup).
+ * Copyright (c) 2015 Liviu Ionescu.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "materialmodel.h"
+#include "materialmanager.h"
+
+MaterialModel::MaterialModel(QObject* parent) :
+  QAbstractTableModel(parent)
+{
+
+}
+
+int MaterialModel::rowCount(const QModelIndex& parent) const
+{
+  return MaterialManager::instance()->materials().count();
+}
+
+int MaterialModel::columnCount(const QModelIndex& parent) const
+{
+  return 2;
+}
+
+QVariant MaterialModel::data(const QModelIndex& index, int role) const
+{
+  QVariant data;
+  Material material
+    = MaterialManager::instance()->materials()[index.row()];
+
+  if (role == Qt::DisplayRole) {
+    switch (index.column()) {
+    case 0:
+      data = material.name();
+      break;
+    case 1:
+      data = material.manufacturer();
+      break;
+    }
+  }
+  else if (role == Qt::EditRole) {
+    switch (index.column()) {
+    case 0:
+      data = material.name();
+      break;
+    case 1:
+      data = material.manufacturer();
+      break;
+    }
+  }
+
+  return data;
+}
+
+bool MaterialModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  return false;
+}
+
+QVariant MaterialModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  QVariant data;
+
+  if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
+    switch (section) {
+    case 0:
+      data = "Name";
+      break;
+    case 1:
+      data = "Manufacturer";
+      break;
+    }
+  }
+
+  return data;
+}
+
+Qt::ItemFlags MaterialModel::flags(const QModelIndex& index) const
+{
+  Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+
+  return flags;
+}
+
+bool MaterialModel::insertRows(int row, int count, const QModelIndex& parent)
+{
+  bool result = false;
+
+  if (!parent.isValid() && row >= 0) {
+    auto& materials = MaterialManager::instance()->materials();
+
+    beginInsertRows(parent, row, (row + count) - 1);
+    
+    for (int i = row; i < row + count; ++i) {
+      Material mat("New material", MaterialClass::NONE);
+      materials.insert(i, mat);
+    }
+
+    endInsertRows();
+    result = true;
+  }
+
+  return result;
+}
+
+bool MaterialModel::removeRows(int row, int count, const QModelIndex& parent)
+{
+  bool result = false;
+
+  if (!parent.isValid() && row >= 0) {
+    auto& materials = MaterialManager::instance()->materials();
+    
+    beginRemoveRows(parent, row, (row + count) - 1);
+    
+    for (int i = 0; i < count; ++i) {
+      materials.removeAt(row);
+    }
+
+    endRemoveRows();
+  }
+
+  return result;
+}

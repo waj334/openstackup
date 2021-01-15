@@ -17,28 +17,32 @@
 
 #pragma once
 
-#include "enums.h"
-#include "manager.h"
 #include "material.h"
 
-#include <QList>
-#include <QMetaType>
+#include <QDialog>
+#include <QItemSelection>
 
-class MaterialManager : public Manager<MaterialManager>
-{
+class MaterialModel;
+
+namespace Ui {
+  class UIMaterials;
+}
+
+class UIMaterials : public QDialog {
+  Q_OBJECT
 public:
-	using MaterialList = QList<Material>;
+  explicit UIMaterials(QWidget* parent = nullptr);
+  ~UIMaterials();
 
-	explicit MaterialManager();
-	~MaterialManager();
+protected slots:
+  void onNewMaterial();
+  void onDeleteMaterial();
+  void onMaterialSelectionChanged(const QItemSelection&, const QItemSelection&);
 
-	const Material get(const QString& name) const;
-	
-	MaterialList& materials();
-	const MaterialList& materials() const;
-
-	static QString typeString(const MaterialClass& type);
+protected:
+  void populateForm(Material* material);
 
 private:
-	MaterialList m_materials;
+  Ui::UIMaterials* mp_ui;
+  MaterialModel* mp_model;
 };

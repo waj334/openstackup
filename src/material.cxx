@@ -18,15 +18,14 @@
 #include "material.h"
 
 Material::Material() :
-  Material("", MaterialClass::NONE, 0)
+  Material("", MaterialClass::NONE)
 {
   //Does nothing
 }
 
-Material::Material(QString name, MaterialClass mclass, double e) :
+Material::Material(QString name, MaterialClass mclass) :
   m_name(name),
-  m_class(mclass),
-  m_dielectricCoeff(e)
+  m_class(mclass)
 {
 
 }
@@ -46,6 +45,16 @@ void Material::setName(const QString& name)
   m_name = name;
 }
 
+QString Material::manufacturer() const
+{
+  return m_manufacturer;
+}
+
+void Material::setManufacturer(const QString& manufacturer)
+{
+  m_manufacturer = manufacturer;
+}
+
 MaterialClass Material::materialClass() const
 {
   return m_class;
@@ -56,18 +65,33 @@ void Material::setMaterialClass(const MaterialClass& mclass)
   m_class = mclass;
 }
 
-double Material::dielectricCoefficient() const
+Material::PermittivityList& Material::permittivityList()
 {
-  return m_dielectricCoeff;
+  return m_dkList;
 }
 
-void Material::setDielectricCoefficient(const double& e)
+const Material::PermittivityList& Material::permittivityList() const
 {
-  m_dielectricCoeff = e;
+  return m_dkList;
+}
+
+double Material::permittivity(int frequency)
+{
+  double dk = 0;
+
+  //Find dk value at frequency
+  //TODO: Interpolate value???
+  for (auto entry : m_dkList) {
+    if (entry.m_frequency == frequency) {
+      dk = entry.m_dk;
+    }
+  }
+
+  return dk;
 }
 
 bool Material::isValid() const
 {
-  return !m_name.isEmpty() && m_dielectricCoeff >= 1 
+  return !m_name.isEmpty() && !m_dkList.isEmpty() 
     && m_class != MaterialClass::NONE;
 }

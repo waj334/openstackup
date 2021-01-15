@@ -29,17 +29,24 @@ const Material MaterialManager::get(const QString& name) const
 {
   Material material;
 
-  auto it = m_materials.find(name);
-  if (it != m_materials.end()) {
-    material = it.value();
+  for (auto entry : m_materials) {
+    if (entry.name() == name) {
+      material = entry;
+      break;
+    }
   }
 
   return material;
 }
 
-void MaterialManager::getAll(QList<Material>& materials) const
+MaterialManager::MaterialList& MaterialManager::materials()
 {
-  materials = m_materials.values();
+  return m_materials;
+}
+
+const MaterialManager::MaterialList& MaterialManager::materials() const
+{
+  return m_materials;
 }
 
 QString MaterialManager::typeString(const MaterialClass& type)

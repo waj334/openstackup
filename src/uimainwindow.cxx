@@ -19,6 +19,7 @@
 #include "ui_uimainwindow.h"
 
 #include "uiabout.h"
+#include "uimaterials.h"
 #include "uistackup.h"
 
 
@@ -32,6 +33,8 @@ UIMainWindow::UIMainWindow(QWidget* parent) :
     this, &UIMainWindow::onAbout);
   connect(mp_ui->actionStackup_Settings, &QAction::triggered,
     this, &UIMainWindow::onStackupSettings);
+  connect(mp_ui->actionMaterials, &QAction::triggered,
+    this, &UIMainWindow::onMaterials);
 }
 
 UIMainWindow::~UIMainWindow()
@@ -51,4 +54,11 @@ void UIMainWindow::onStackupSettings()
   UIStackup* stackup = new UIStackup(this);
   stackup->setAttribute(Qt::WA_DeleteOnClose);
   stackup->exec();
+}
+
+void UIMainWindow::onMaterials()
+{
+  UIMaterials* materials = new UIMaterials(this);
+  materials->setAttribute(Qt::WA_DeleteOnClose);
+  materials->exec();
 }

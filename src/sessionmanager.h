@@ -36,10 +36,24 @@ public:
   int layerCount() const;
   void setLayerCount(int count);
 
+  void markSessionDirty();
+  bool isSessionDirty() const;
+
+  static int version();
+  bool saveSession(const QString& fname = "");
+  bool loadSession(const QString& fname);
+  void resetSession();
+
+  QString sessionFilename() const;
+
 signals:
   void layerCountChanged(int);
+  void sessionMarkedDirty(bool);
+  void sessionChanged();
 
 private:
   LayerArray m_layers;
   int m_layerCount = 2;
+  bool m_sessionIsDirty = false;
+  QString m_sessionFname;
 };

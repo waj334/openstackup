@@ -52,12 +52,28 @@ public:
 
   bool isValid() const;
 
+  static int version();
+  QDataStream& write(QDataStream& stream) const;
+  QDataStream& read(QDataStream& stream);
+
 private:
   QString m_name;
   QString m_manufacturer;
 
   MaterialClass m_class;
   PermittivityList m_dkList;
+
+  void readV0(QDataStream& stream);
 };
 
 Q_DECLARE_METATYPE(Material)
+
+inline QDataStream& operator<<(QDataStream& stream, const Material& material)
+{
+  return material.write(stream);
+}
+
+inline QDataStream& operator>>(QDataStream& stream, Material& material)
+{
+  return material.read(stream);
+}

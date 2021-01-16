@@ -17,6 +17,8 @@
 
 #include "layer.h"
 
+constexpr int LAYER_VERISON = 0;
+
 const Material Layer::material() const {
   return m_material;
 }
@@ -38,4 +40,38 @@ MaterialClass Layer::materialClass() const {
 
 void Layer::setMaterialClass(const MaterialClass& mclass) {
   m_class = mclass;
+}
+
+int Layer::version()
+{
+  return LAYER_VERISON;
+}
+
+QDataStream& Layer::write(QDataStream& stream) const
+{
+  //Write version
+  stream << version();
+
+  stream << m_material << m_thickness << m_class;
+
+  return stream;
+}
+
+QDataStream& Layer::read(QDataStream& stream)
+{
+  //Read version
+  int version = -1;
+  stream >> version;
+
+  switch (version) {
+  case 0:
+    readV0(stream);
+  }
+
+  return stream;
+}
+
+void Layer::readV0(QDataStream& stream)
+{
+  stream >> m_material >> m_thickness >> m_class;
 }

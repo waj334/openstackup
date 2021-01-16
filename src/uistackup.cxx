@@ -51,6 +51,7 @@ UIStackup::UIStackup(QWidget* parent) :
 
   connect(model, &QAbstractItemModel::dataChanged, 
   [this](const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles) {
+    SessionManager::instance()->markSessionDirty();
     this->updateScene();
   });
 }

@@ -17,6 +17,12 @@
 
 #include "sessionmanager.h"
 
+#include <QDataStream>
+#include <QFile>
+#include <QVariant>
+
+constexpr int SESSION_VERSION = 0;
+
 SessionManager::SessionManager()
 {
 
@@ -47,4 +53,134 @@ void SessionManager::setLayerCount(int count)
 {
   m_layerCount = count;
   emit layerCountChanged(count);
+  markSessionDirty();
+}
+
+void SessionManager::markSessionDirty()
+{
+  m_sessionIsDirty = true;
+  emit sessionMarkedDirty(true);
+}
+
+bool SessionManager::isSessionDirty() const
+{
+  return m_sessionIsDirty;
+}
+
+int SessionManager::version()
+{
+  return SESSION_VERSION;
+}
+
+bool SessionManager::saveSession(const QString& fname)
+{
+  bool result = false;
+
+  QString outFname = fname.isEmpty() ? m_sessionFname : fname;
+  if (!outFname.isEmpty()) {
+    QFile file(outFname);
+    if (file.open(QIODevice::WriteOnly)) {
+      QDataStream out(&file);
+
+      //Make header
+      QVariantMap headerMap;
+      headerMap["sessionVersion"]   = version();
+      headerMap["layerVersion"]     = Layer::version();
+      headerMap["materialVersion"]  = Material::version();
+
+      //Write header
+      out << headerMap;
+
+      //Write layer information
+      out << int(m_layers.size());
+      for (const Layer& layer : m_layers) {
+        out << layer;
+      }
+
+      out << m_layerCount;
+
+      //Success!
+      result = true;
+    }
+  }
+
+  if (result) {
+    m_sessionFname = fname;
+
+    //Reset dirty state
+    m_sessionIsDirty = false;
+    emit sessionMarkedDirty(false);
+  }
+  else {
+    resetSession();
+  }
+
+  return result;
+}
+
+bool SessionManager::loadSession(const QString& fname)
+{
+  bool result = false;
+
+  QFile file(fname);
+  if (file.open(QIODevice::ReadOnly)) {
+    QDataStream in(&file);
+
+    //Read header
+    QVariantMap headerMap;
+    in >> headerMap;
+
+    //TODO: Check header for version conflicts
+
+    //Read layer information
+    int count;
+    in >> count;
+
+    for (int i = 0; i < count; ++i) {
+      in >> m_layers[i];
+    }
+
+    in >> m_layerCount;
+
+    //Success!
+    result = true;
+  }
+
+  if (result) {
+    m_sessionFname = fname;
+
+    //Notify other components that the session has changed
+    emit sessionChanged();
+
+    //Reset dirty state
+    m_sessionIsDirty = false;
+    emit sessionMarkedDirty(false);
+  }
+  else {
+    resetSession();
+  }
+
+  return result;
+}
+
+void SessionManager::resetSession()
+{
+  //Reset path to saved session
+  m_sessionFname = "";
+
+  //Dump layer array
+  m_layers = LayerArray();
+  m_layerCount = 2;
+
+  //Reset dirty state
+  m_sessionIsDirty = false;
+  emit  sessionMarkedDirty(false);
+
+  //Notify other components that the session has changed
+  emit sessionChanged();
+}
+
+QString SessionManager::sessionFilename() const
+{
+  return m_sessionFname;
 }

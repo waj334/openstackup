@@ -30,9 +30,22 @@ public:
   ~UIMainWindow();
 
 public slots:
+  void onNewSession();
+  void onOpenSession();
+  bool onSaveSession();
+  void onSaveSessionAs();
+
+  void onSessionMarkedDirty(bool dirty);
+
   void onAbout();
   void onStackupSettings();
   void onMaterials();
+
+protected:
+  void closeEvent(QCloseEvent* event) override;
+
+private slots:
+  void updateWindowTitle();
 
 private:
   Ui::UIMainWindow* mp_ui;

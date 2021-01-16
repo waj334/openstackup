@@ -20,6 +20,8 @@
 #include "enums.h"
 #include "material.h"
 
+#include <QDataStream>
+
 class Layer {
 public:
   const Material material() const;
@@ -31,8 +33,24 @@ public:
   MaterialClass materialClass() const;
   void setMaterialClass(const MaterialClass& mclass);
 
+  static int version();
+  QDataStream& write(QDataStream& stream) const;
+  QDataStream& read(QDataStream& stream);
+
 private:
   Material m_material;
   double m_thickness = 0;
   MaterialClass m_class = MaterialClass::NONE;
+
+  void readV0(QDataStream& stream);
 };
+
+inline QDataStream& operator<<(QDataStream& stream, const Layer& layer)
+{
+  return layer.write(stream);
+}
+
+inline QDataStream& operator>>(QDataStream& stream, Layer& layer)
+{
+  return layer.read(stream);
+}

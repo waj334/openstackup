@@ -15,37 +15,36 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "sessionmanager.h"
 
-#include "layer.h"
+SessionManager::SessionManager()
+{
 
-#include <QDialog>
-#include <QGraphicsScene>
-
-#include <array>
-
-class StackupProxyModel;
-
-namespace Ui {
-  class UIStackup;
 }
 
-class UIStackup : public QDialog {
-  Q_OBJECT
-public:
-  explicit UIStackup(QWidget* parent = nullptr);
-  ~UIStackup();
+SessionManager::~SessionManager()
+{
 
-protected:
-  void showEvent(QShowEvent*) override;
+}
 
-private slots:
-  void onLayerCountChanged(int count);
-  void updateScene() const;
+SessionManager::LayerArray& SessionManager::layers()
+{
+  return m_layers;
+}
 
-private:
-  Ui::UIStackup* mp_ui;
+const SessionManager::LayerArray& SessionManager::layers() const
+{
+  return m_layers;
+}
 
-  StackupProxyModel* mp_proxy;
-  QGraphicsScene* mp_scene;
-};
+
+int SessionManager::layerCount() const
+{
+  return m_layerCount;
+}
+
+void SessionManager::setLayerCount(int count)
+{
+  m_layerCount = count;
+  emit layerCountChanged(count);
+}

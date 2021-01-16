@@ -18,6 +18,7 @@
 #include "uistackup.h"
 #include "ui_uistackup.h"
 
+#include "sessionmanager.h"
 #include "stackupdelegate.h"
 #include "stackupmodel.h"
 #include "stackupproxymodel.h"
@@ -33,23 +34,25 @@ UIStackup::UIStackup(QWidget* parent) :
   mp_ui->graphicsView->setScene(mp_scene);
 
   //Create stack up model
-  StackupModel* model = new StackupModel(m_layers.data(), m_layers.size(), this);
+  auto& layers = SessionManager::instance()->layers();
+  StackupModel* model = new StackupModel(layers.data(), layers.size(), this);
   mp_proxy = new StackupProxyModel(this);
   mp_proxy->setSourceModel(model);
+  mp_proxy->setLayerCount(SessionManager::instance()->layerCount());
 
   mp_ui->stackupTable->setModel(mp_proxy);
   mp_ui->stackupTable->setItemDelegate(new StackupDelegate(this));
+  mp_ui->layerCountSpinBox->setValue(SessionManager::instance()->layerCount());
 
   connect(mp_ui->layerCountSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), 
     this, &UIStackup::onLayerCountChanged);
-  connect(mp_ui->layerCountSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+  connect(SessionManager::instance().get(), &SessionManager::layerCountChanged,
     mp_proxy, &StackupProxyModel::setLayerCount);
 
-  connect(model, &QAbstractItemModel::dataChanged, [this](const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles) {
+  connect(model, &QAbstractItemModel::dataChanged, 
+  [this](const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles) {
     this->updateScene();
   });
-
-  updateScene();
 }
 
 UIStackup::~UIStackup()
@@ -57,15 +60,24 @@ UIStackup::~UIStackup()
   delete mp_ui;
 }
 
-void UIStackup::onLayerCountChanged(int count)
+void UIStackup::showEvent(QShowEvent* event)
 {
-  //Only allow even values
-  int value = mp_ui->layerCountSpinBox->value();
-  mp_ui->layerCountSpinBox->setValue(value + (value % 2));
+  QDialog::showEvent(event);
   updateScene();
 }
 
-void UIStackup::updateScene()
+void UIStackup::onLayerCountChanged(int count)
+{
+  //Only allow even values
+  count = count + (count % 2);
+
+  mp_ui->layerCountSpinBox->setValue(count);
+  SessionManager::instance()->setLayerCount(count);
+
+  updateScene();
+}
+
+void UIStackup::updateScene() const
 {
   //Clear scene
   mp_scene->clear();
@@ -76,7 +88,7 @@ void UIStackup::updateScene()
   //Draw layers
   for (int i = 0; i < mp_proxy->rowCount(); ++i) {
     QModelIndex index = mp_proxy->mapToSource(mp_proxy->index(i, 2));
-    Layer layer = m_layers[index.row()];
+    Layer layer = SessionManager::instance()->layers()[index.row()];
     QColor color;
 
     switch (layer.materialClass()) {

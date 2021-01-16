@@ -22,6 +22,7 @@ set(srcs
 	materialmodel.cxx
 	permittivitydelegate.cxx
 	permittivitymodel.cxx
+	sessionmanager.cxx
 	stackupdelegate.cxx
 	stackupmodel.cxx
 	stackupproxymodel.cxx

@@ -18,34 +18,28 @@
 #pragma once
 
 #include "layer.h"
-
-#include <QDialog>
-#include <QGraphicsScene>
+#include "manager.h"
 
 #include <array>
 
-class StackupProxyModel;
-
-namespace Ui {
-  class UIStackup;
-}
-
-class UIStackup : public QDialog {
+class SessionManager : public Manager<SessionManager> {
   Q_OBJECT
 public:
-  explicit UIStackup(QWidget* parent = nullptr);
-  ~UIStackup();
+  using LayerArray = std::array<Layer, 31>;
 
-protected:
-  void showEvent(QShowEvent*) override;
+  explicit SessionManager();
+  ~SessionManager();
 
-private slots:
-  void onLayerCountChanged(int count);
-  void updateScene() const;
+  LayerArray& layers();
+  const LayerArray& layers() const;
+
+  int layerCount() const;
+  void setLayerCount(int count);
+
+signals:
+  void layerCountChanged(int);
 
 private:
-  Ui::UIStackup* mp_ui;
-
-  StackupProxyModel* mp_proxy;
-  QGraphicsScene* mp_scene;
+  LayerArray m_layers;
+  int m_layerCount = 2;
 };

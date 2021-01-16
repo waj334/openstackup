@@ -15,25 +15,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "uiabout.h"
+#include "ui_uiabout.h"
 
-#include <QMainWindow>
-
-namespace Ui {
-  class UIMainWindow;
+UIAbout::UIAbout(QWidget* parent) :
+  QDialog(parent),
+  mp_ui(new Ui::UIAbout)
+{
+  mp_ui->setupUi(this);
 }
 
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
-public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
-
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
-
-private:
-  Ui::UIMainWindow* mp_ui;
-};
+UIAbout::~UIAbout()
+{
+  delete mp_ui;
+}

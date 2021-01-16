@@ -17,23 +17,39 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "material.h"
+
+#include <QDialog>
+#include <QItemSelection>
+
+class MaterialModel;
+class Material;
 
 namespace Ui {
-  class UIMainWindow;
+  class UIMaterials;
 }
 
-class UIMainWindow : public QMainWindow {
+class UIMaterials : public QDialog {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  explicit UIMaterials(QWidget* parent = nullptr);
+  ~UIMaterials();
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+protected slots:
+  void onNewMaterial();
+  void onDeleteMaterial();
+  void onMaterialSelectionChanged(const QItemSelection&, const QItemSelection&);
+  void onAddDk();
+  void onDeleteDk();
+  void onNameChanged(const QString& name);
+  void onManufacturerChanged(const QString& manufacturer);
+  void onTypeChanged(int index);
+
+protected:
+  void populateForm(Material* material);
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  Ui::UIMaterials* mp_ui;
+  Material* mp_material;
+  MaterialModel* mp_model;
 };

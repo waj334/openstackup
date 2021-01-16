@@ -17,23 +17,18 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QDialog>
 
 namespace Ui {
-  class UIMainWindow;
+  class UIAbout;
 }
 
-class UIMainWindow : public QMainWindow {
+class UIAbout : public QDialog {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
-
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+  explicit UIAbout(QWidget* parent = nullptr);
+  ~UIAbout();
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  Ui::UIAbout* mp_ui;
 };

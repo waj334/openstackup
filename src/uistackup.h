@@ -17,23 +17,35 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "layer.h"
+
+#include <QDialog>
+#include <QGraphicsScene>
+
+#include <array>
+
+class StackupProxyModel;
 
 namespace Ui {
-  class UIMainWindow;
+  class UIStackup;
 }
 
-class UIMainWindow : public QMainWindow {
+class UIStackup : public QDialog {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  explicit UIStackup(QWidget* parent = nullptr);
+  ~UIStackup();
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+protected:
+  void showEvent(QShowEvent*) override;
+
+private slots:
+  void onLayerCountChanged(int count);
+  void updateScene() const;
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  Ui::UIStackup* mp_ui;
+
+  StackupProxyModel* mp_proxy;
+  QGraphicsScene* mp_scene;
 };

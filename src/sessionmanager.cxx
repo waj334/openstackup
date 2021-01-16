@@ -15,25 +15,36 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "sessionmanager.h"
 
-#include <QMainWindow>
+SessionManager::SessionManager()
+{
 
-namespace Ui {
-  class UIMainWindow;
 }
 
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
-public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+SessionManager::~SessionManager()
+{
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+}
 
-private:
-  Ui::UIMainWindow* mp_ui;
-};
+SessionManager::LayerArray& SessionManager::layers()
+{
+  return m_layers;
+}
+
+const SessionManager::LayerArray& SessionManager::layers() const
+{
+  return m_layers;
+}
+
+
+int SessionManager::layerCount() const
+{
+  return m_layerCount;
+}
+
+void SessionManager::setLayerCount(int count)
+{
+  m_layerCount = count;
+  emit layerCountChanged(count);
+}

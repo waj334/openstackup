@@ -15,25 +15,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "stackupproxymodel.h"
 
-#include <QMainWindow>
+StackupProxyModel::StackupProxyModel(QObject* parent) :
+  QSortFilterProxyModel(parent)
+{
 
-namespace Ui {
-  class UIMainWindow;
 }
 
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
-public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+void StackupProxyModel::setLayerCount(int count) {
+  m_layerCount = count;
+  invalidateFilter();
+}
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+bool StackupProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
+{
+  bool keep = false;
 
-private:
-  Ui::UIMainWindow* mp_ui;
-};
+  if (source_row < ((m_layerCount*2) / 2) ||
+    source_row > sourceModel()->rowCount() - ((m_layerCount*2) / 2))
+  {
+    keep = true;
+  }
+
+  return keep;
+}

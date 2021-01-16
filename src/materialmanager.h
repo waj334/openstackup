@@ -17,23 +17,28 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "enums.h"
+#include "manager.h"
+#include "material.h"
 
-namespace Ui {
-  class UIMainWindow;
-}
+#include <QList>
+#include <QMetaType>
 
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
+class MaterialManager : public Manager<MaterialManager>
+{
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+	using MaterialList = QList<Material>;
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+	explicit MaterialManager();
+	~MaterialManager();
+
+	const Material get(const QString& name) const;
+	
+	MaterialList& materials();
+	const MaterialList& materials() const;
+
+	static QString typeString(const MaterialClass& type);
 
 private:
-  Ui::UIMainWindow* mp_ui;
+	MaterialList m_materials;
 };

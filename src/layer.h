@@ -17,23 +17,22 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "enums.h"
+#include "material.h"
 
-namespace Ui {
-  class UIMainWindow;
-}
-
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
+class Layer {
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  const Material material() const;
+  void setMaterial(const Material& mat);
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+  double thickness() const;
+  void setThickness(const double& thickness);
+
+  MaterialClass materialClass() const;
+  void setMaterialClass(const MaterialClass& mclass);
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  Material m_material;
+  double m_thickness = 0;
+  MaterialClass m_class = MaterialClass::NONE;
 };

@@ -17,23 +17,18 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QStyledItemDelegate>
 
-namespace Ui {
-  class UIMainWindow;
-}
-
-class UIMainWindow : public QMainWindow {
+class PermittivityDelegate : public QStyledItemDelegate {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  PermittivityDelegate(QObject* parent = nullptr);
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+  QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option,
+    const QModelIndex& index) const override;
 
-private:
-  Ui::UIMainWindow* mp_ui;
+  void setEditorData(QWidget* editor, const QModelIndex& index) const override;
+
+  void setModelData(QWidget* editor, QAbstractItemModel* model,
+    const QModelIndex& index) const override;
 };

@@ -17,23 +17,13 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QMetaType>
 
-namespace Ui {
-  class UIMainWindow;
-}
-
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
-public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
-
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
-
-private:
-  Ui::UIMainWindow* mp_ui;
+enum class MaterialClass : unsigned int {
+	COPPER,
+	CORE,
+	NONE,
+	PREPREG
 };
+
+Q_DECLARE_METATYPE(MaterialClass)

@@ -17,23 +17,19 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QSortFilterProxyModel>
 
-namespace Ui {
-  class UIMainWindow;
-}
-
-class UIMainWindow : public QMainWindow {
+class StackupProxyModel : public QSortFilterProxyModel {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  explicit StackupProxyModel(QObject* parent = nullptr);
 
 public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+  void setLayerCount(int count);
+
+protected:
+  bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const;
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  int m_layerCount = 2;
 };

@@ -17,23 +17,29 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "layer.h"
+#include "manager.h"
 
-namespace Ui {
-  class UIMainWindow;
-}
+#include <array>
 
-class UIMainWindow : public QMainWindow {
+class SessionManager : public Manager<SessionManager> {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  using LayerArray = std::array<Layer, 31>;
 
-public slots:
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
+  explicit SessionManager();
+  ~SessionManager();
+
+  LayerArray& layers();
+  const LayerArray& layers() const;
+
+  int layerCount() const;
+  void setLayerCount(int count);
+
+signals:
+  void layerCountChanged(int);
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  LayerArray m_layers;
+  int m_layerCount = 2;
 };

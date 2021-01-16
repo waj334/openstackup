@@ -20,6 +20,8 @@
 
 #include "materialmanager.h"
 #include "materialmodel.h"
+#include "permittivitydelegate.h"
+#include "permittivitymodel.h"
 
 UIMaterials::UIMaterials(QWidget* parent) :
   QDialog(parent),
@@ -31,12 +33,29 @@ UIMaterials::UIMaterials(QWidget* parent) :
   mp_model = new MaterialModel(this);
   mp_ui->materialsTable->setModel(mp_model);
 
+  mp_ui->dkTable->setItemDelegate(new PermittivityDelegate(this));
+
+  //Populate type drop down
+  mp_ui->typeComboBox->addItem("", QVariant::fromValue<MaterialClass>(MaterialClass::NONE));
+  mp_ui->typeComboBox->addItem("Core", QVariant::fromValue<MaterialClass>(MaterialClass::CORE));
+  mp_ui->typeComboBox->addItem("Prepreg", QVariant::fromValue<MaterialClass>(MaterialClass::PREPREG));
+
   connect(mp_ui->newMaterialButton, &QPushButton::pressed,
     this, &UIMaterials::onNewMaterial);
   connect(mp_ui->deleteMaterialButton, &QPushButton::pressed,
     this, &UIMaterials::onDeleteMaterial);
   connect(mp_ui->materialsTable->selectionModel(), &QItemSelectionModel::selectionChanged,
     this, &UIMaterials::onMaterialSelectionChanged);
+  connect(mp_ui->nameLineEdit, &QLineEdit::textEdited,
+    this, &UIMaterials::onNameChanged);
+  connect(mp_ui->manufacturerLineEdit, &QLineEdit::textEdited,
+    this, &UIMaterials::onManufacturerChanged);
+  connect(mp_ui->typeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+    this, &UIMaterials::onTypeChanged);
+  connect(mp_ui->addDkButton, &QPushButton::clicked, 
+    this, &UIMaterials::onAddDk);
+  connect(mp_ui->deleteDkButton, &QPushButton::clicked, 
+    this, &UIMaterials::onDeleteDk);
 }
 
 UIMaterials::~UIMaterials()
@@ -46,14 +65,10 @@ UIMaterials::~UIMaterials()
 
 void UIMaterials::onNewMaterial()
 {
-  auto index = mp_ui->materialsTable->currentIndex();
   int row = mp_model->rowCount();
 
-  if (index.isValid()) {
-    row = index.row();
-  }
-
   mp_model->insertRow(row);
+  mp_ui->materialsTable->selectRow(row);
 }
 
 void UIMaterials::onDeleteMaterial()
@@ -71,41 +86,102 @@ void UIMaterials::onMaterialSelectionChanged(const QItemSelection&, const QItemS
 
   if (selection.isEmpty()) {
     mp_ui->editorArea->setDisabled(true);
-    populateForm(nullptr);
+    mp_material = nullptr;
   }
   else {
     Material& material = MaterialManager::instance()->materials()[selection.first().row()];
     
     mp_ui->editorArea->setEnabled(true);
-    populateForm(&material);
+    mp_material = &material;
+  }
+
+  populateForm(mp_material);
+}
+
+void UIMaterials::onAddDk()
+{
+  auto model = mp_ui->dkTable->model();
+
+  if (model) {
+    int row = model->rowCount();
+    model->insertRow(row);
+  }
+}
+
+void UIMaterials::onDeleteDk()
+{
+  auto model = mp_ui->dkTable->model();
+
+  if (model) {
+    auto selection = mp_ui->dkTable->selectionModel()->selectedRows();
+
+    for (const auto& index : selection) {
+      model->removeRow(index.row());
+    }
+  }
+}
+
+void UIMaterials::onNameChanged(const QString& name)
+{
+  if (mp_material) {
+    mp_material->setName(name);
+
+    auto index = mp_ui->materialsTable->currentIndex();
+    mp_model->dataChanged(index.siblingAtColumn(0), 
+      index.siblingAtColumn(3));
+  }
+}
+
+void UIMaterials::onManufacturerChanged(const QString& manufacturer)
+{
+  if (mp_material) {
+    mp_material->setManufacturer(manufacturer);
+
+    auto index = mp_ui->materialsTable->currentIndex()
+      .siblingAtColumn(1);
+    mp_model->dataChanged(index.siblingAtColumn(0), 
+      index.siblingAtColumn(3));
+  }
+}
+
+void UIMaterials::onTypeChanged(int index)
+{
+  if (index >= 0 && mp_material) {
+    auto type = mp_ui->typeComboBox->itemData(index).value<MaterialClass>();
+    mp_material->setMaterialClass(type);
+
+    auto index = mp_ui->materialsTable->currentIndex();
+    mp_model->dataChanged(index.siblingAtColumn(0), 
+      index.siblingAtColumn(3));
   }
 }
 
 void UIMaterials::populateForm(Material* material)
 {
-  mp_ui->tableWidget->clearContents();
+  //Delete the old item model
+  if (mp_ui->dkTable->model()) {
+    mp_ui->dkTable->model()->deleteLater();
+  }
 
   if (material) {
     mp_ui->nameLineEdit->setText(material->name());
     mp_ui->manufacturerLineEdit->setText(material->manufacturer());
 
-    Material::PermittivityList& list = material->permittivityList();
-    mp_ui->tableWidget->setRowCount(list.count());
-
-    int row = 0;
-
-    //Populate the permittivity table
-    for (auto entry : list) {
-      QString freqStr = QString("%1 MHz")
-        .arg(entry.m_frequency);
-
-      QTableWidgetItem* freqItem = new QTableWidgetItem(freqStr);
-      QTableWidgetItem* dkItem = new QTableWidgetItem(QString::number(entry.m_dk, 'f'));
-
-      mp_ui->tableWidget->setItem(row, 0, freqItem);
-      mp_ui->tableWidget->setItem(row, 1, dkItem);
-      ++row;
+    //Find item representing type
+    int index = -1;
+    for (int i = 0; i < mp_ui->typeComboBox->count(); ++i) {
+      if (mp_ui->typeComboBox
+        ->itemData(i).value<MaterialClass>() == material->materialClass()) {
+        index = i;
+        break;
+      }
     }
+
+    if (index >= 0) {
+      mp_ui->typeComboBox->setCurrentIndex(index);
+    }
+
+    mp_ui->dkTable->setModel(new PermittivityModel(material));
   }
   else {
     mp_ui->nameLineEdit->clear();

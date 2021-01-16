@@ -17,39 +17,18 @@
 
 #pragma once
 
-#include "material.h"
+#include <QStyledItemDelegate>
 
-#include <QDialog>
-#include <QItemSelection>
-
-class MaterialModel;
-class Material;
-
-namespace Ui {
-  class UIMaterials;
-}
-
-class UIMaterials : public QDialog {
+class PermittivityDelegate : public QStyledItemDelegate {
   Q_OBJECT
 public:
-  explicit UIMaterials(QWidget* parent = nullptr);
-  ~UIMaterials();
+  PermittivityDelegate(QObject* parent = nullptr);
 
-protected slots:
-  void onNewMaterial();
-  void onDeleteMaterial();
-  void onMaterialSelectionChanged(const QItemSelection&, const QItemSelection&);
-  void onAddDk();
-  void onDeleteDk();
-  void onNameChanged(const QString& name);
-  void onManufacturerChanged(const QString& manufacturer);
-  void onTypeChanged(int index);
+  QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option,
+    const QModelIndex& index) const override;
 
-protected:
-  void populateForm(Material* material);
+  void setEditorData(QWidget* editor, const QModelIndex& index) const override;
 
-private:
-  Ui::UIMaterials* mp_ui;
-  Material* mp_material;
-  MaterialModel* mp_model;
+  void setModelData(QWidget* editor, QAbstractItemModel* model,
+    const QModelIndex& index) const override;
 };

@@ -31,7 +31,7 @@ int MaterialModel::rowCount(const QModelIndex& parent) const
 
 int MaterialModel::columnCount(const QModelIndex& parent) const
 {
-  return 2;
+  return 3;
 }
 
 QVariant MaterialModel::data(const QModelIndex& index, int role) const
@@ -48,6 +48,9 @@ QVariant MaterialModel::data(const QModelIndex& index, int role) const
     case 1:
       data = material.manufacturer();
       break;
+    case 2:
+      data = MaterialManager::typeString(material.materialClass());
+      break;
     }
   }
   else if (role == Qt::EditRole) {
@@ -57,6 +60,9 @@ QVariant MaterialModel::data(const QModelIndex& index, int role) const
       break;
     case 1:
       data = material.manufacturer();
+      break;
+    case 2:
+      data = QVariant::fromValue<MaterialClass>(material.materialClass());
       break;
     }
   }
@@ -80,6 +86,9 @@ QVariant MaterialModel::headerData(int section, Qt::Orientation orientation, int
       break;
     case 1:
       data = "Manufacturer";
+      break;
+    case 2:
+      data = "Type";
       break;
     }
   }
@@ -129,6 +138,7 @@ bool MaterialModel::removeRows(int row, int count, const QModelIndex& parent)
     }
 
     endRemoveRows();
+    result = true;
   }
 
   return result;

@@ -20,6 +20,8 @@ set(srcs
 	material.cxx
 	materialmanager.cxx
 	materialmodel.cxx
+	permittivitydelegate.cxx
+	permittivitymodel.cxx
 	stackupdelegate.cxx
 	stackupmodel.cxx
 	stackupproxymodel.cxx

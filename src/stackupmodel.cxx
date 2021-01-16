@@ -78,7 +78,14 @@ QVariant StackupModel::data(const QModelIndex& index, int role) const
         data = MaterialManager::typeString(layer->materialClass());
         break;
       case 2:
-        data = layer->material().name();
+      {
+        if (layer->material().isValid()) {
+          QString name = QString("%1 - %2")
+            .arg(layer->material().manufacturer())
+            .arg(layer->material().name());
+          data = name;
+        }
+      }
         break;
       case 3:
         data = QString("%1 %2")

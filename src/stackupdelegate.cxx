@@ -53,11 +53,21 @@ QWidget* StackupDelegate::createEditor(QWidget* parent, const QStyleOptionViewIt
     //Get selected material type
     auto type = index.siblingAtColumn(1).data(Qt::EditRole).value<MaterialClass>();
 
-    //Add materials matching 'type' to combo box
-    for (const auto& mat : mats) {
-      if (type == mat.materialClass()) {
-        cb->addItem(mat.name(), QVariant::fromValue<Material>(mat));
+    if (type != MaterialClass::NONE && type != MaterialClass::COPPER) {
+      cb->addItem("", QVariant::fromValue<Material>(Material()));
+
+      //Add materials matching 'type' to combo box
+      for (const auto& mat : mats) {
+        if (type == mat.materialClass() && mat.isValid()) {
+          QString name = QString("%1 - %2")
+            .arg(mat.manufacturer())
+            .arg(mat.name());
+
+          cb->addItem(name, QVariant::fromValue<Material>(mat));
+        }
       }
+
+      widget = cb;
     }
   }
   else if (index.column() == 3) {
@@ -79,7 +89,7 @@ void StackupDelegate::setEditorData(QWidget* editor, const QModelIndex& index) c
     //Find item representing type
     int index = -1;
     for (int i = 0; i < cb->count(); ++i) {
-      if (cb->itemData(i, Qt::EditRole).value<MaterialClass>() == type) {
+      if (cb->itemData(i).value<MaterialClass>() == type) {
         index = i;
         break;
       }
@@ -87,6 +97,7 @@ void StackupDelegate::setEditorData(QWidget* editor, const QModelIndex& index) c
 
     if (index >= 0) {
       cb->setCurrentIndex(index);
+      cb->showPopup();
     }
   }
   else if (index.column() == 2) {
@@ -96,7 +107,7 @@ void StackupDelegate::setEditorData(QWidget* editor, const QModelIndex& index) c
     //Find item representing type
     int index = -1;
     for (int i = 0; i < cb->count(); ++i) {
-      if (cb->itemData(i, Qt::EditRole).value<Material>().name() == mat.name()) {
+      if (cb->itemData(i).value<Material>().name() == mat.name()) {
         index = i;
         break;
       }
@@ -104,6 +115,7 @@ void StackupDelegate::setEditorData(QWidget* editor, const QModelIndex& index) c
 
     if (index >= 0) {
       cb->setCurrentIndex(index);
+      cb->showPopup();
     }
   }
   else if (index.column() == 3) {
@@ -123,7 +135,19 @@ void StackupDelegate::setEditorData(QWidget* editor, const QModelIndex& index) c
 void StackupDelegate::setModelData(QWidget* editor, QAbstractItemModel* model,
   const QModelIndex& index) const
 {
-  if (index.column() == 1 || index.column() == 2) {
+  if (index.column() == 1) {
+    QComboBox* cb = qobject_cast<QComboBox*>(editor);
+    model->setData(index, cb->currentData(), Qt::EditRole);
+
+    auto type = cb->currentData().value<MaterialClass>();
+    auto matIndex = index.siblingAtColumn(2);
+    auto material = matIndex.data(Qt::EditRole).value<Material>();
+    if (material.materialClass() != type) {
+      //Clear selected material if the material class types don't match
+      model->setData(matIndex, QVariant::fromValue<Material>(Material()));
+    }
+  }
+  else if (index.column() == 2) {
     QComboBox* cb = qobject_cast<QComboBox*>(editor);
     model->setData(index, cb->currentData(), Qt::EditRole);
   }
@@ -131,7 +155,7 @@ void StackupDelegate::setModelData(QWidget* editor, QAbstractItemModel* model,
     //Handle units for thickness field. Convert to mm
     QLineEdit* le = qobject_cast<QLineEdit*>(editor);
 
-    QRegularExpression regex("(\\d*\\.?\\d+)\\s?(([munp])(\\w))?$");
+    QRegularExpression regex("(\\d*\\.?\\d+)\\s?(([munp])(\\w+))?$");
     auto matches = regex.match(le->text());
 
     if (matches.hasMatch()) {

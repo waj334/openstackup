@@ -13,6 +13,9 @@ find_package(Qt5
 )
 
 find_package(Boost 1.75.0 REQUIRED)
+find_package(unofficial-http-parser REQUIRED)
+find_package(fmt REQUIRED)
+find_package(restinio CONFIG REQUIRED)
 
 set(srcs
 	enums.cxx
@@ -21,8 +24,10 @@ set(srcs
 	material.cxx
 	materialmanager.cxx
 	materialmodel.cxx
+	net.cxx
 	permittivitydelegate.cxx
 	permittivitymodel.cxx
+	pluginserver.cxx
 	sessionmanager.cxx
 	stackupdelegate.cxx
 	stackupmodel.cxx
@@ -50,9 +55,11 @@ target_link_libraries(openstackup
 		Qt5::Core
 		Qt5::Widgets
 		Qt5::Svg
+		restinio::restinio
 )
 
 target_include_directories(openstackup
 	PRIVATE
 		${CMAKE_CURRENT_BINARY_DIR}
+		${CPP_HTTPLIB_INCLUDE_DIRS}
 	)

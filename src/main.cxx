@@ -1,5 +1,5 @@
 #include "uimainwindow.h"
-
+#include "pluginserver.h"
 #include <QApplication>
 
 int main(int argc, char* argv[]) {
@@ -10,9 +10,18 @@ int main(int argc, char* argv[]) {
   QCoreApplication::setApplicationName("Open Stackup");
   QCoreApplication::setApplicationVersion("0.0.0");
 
-  //Create the main window
-  UIMainWindow window;
-  window.show();
+  int ret = -1;
 
-  return app.exec();;
+  //Initialize and start the plugin server
+  PluginServer pluginServer;
+
+  if (pluginServer.start()) {
+    //Create the main window
+    UIMainWindow window;
+    window.show();
+
+    ret = app.exec();;
+  }
+
+  return ret;
 }

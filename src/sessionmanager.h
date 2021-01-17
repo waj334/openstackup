@@ -20,6 +20,8 @@
 #include "layer.h"
 #include "manager.h"
 
+#include <QReadWriteLock>
+
 #include <array>
 
 class SessionManager : public Manager<SessionManager> {
@@ -32,6 +34,7 @@ public:
 
   LayerArray& layers();
   const LayerArray& layers() const;
+  void updateLayer(int index, const Layer& layer);
 
   int layerCount() const;
   void setLayerCount(int count);
@@ -47,6 +50,7 @@ public:
   QString sessionFilename() const;
 
 signals:
+  void sync();
   void layerCountChanged(int);
   void sessionMarkedDirty(bool);
   void sessionChanged();
@@ -56,4 +60,6 @@ private:
   int m_layerCount = 2;
   bool m_sessionIsDirty = false;
   QString m_sessionFname;
+
+  mutable QReadWriteLock m_ioLock;
 };

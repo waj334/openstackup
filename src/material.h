@@ -33,7 +33,7 @@ public:
   using PermittivityList = QList<Permittivity>;
 
   Material();
-  Material(QString name, MaterialClass mclass);
+  Material(QString name, MaterialClass mclass, bool imported = false);
   ~Material();
 
   QString name() const;
@@ -41,6 +41,8 @@ public:
 
   QString manufacturer() const;
   void setManufacturer(const QString& manufacturer);
+
+  bool isImported() const;
 
   MaterialClass materialClass() const;
   void setMaterialClass(const MaterialClass& mclass);
@@ -59,6 +61,7 @@ public:
 private:
   QString m_name;
   QString m_manufacturer;
+  bool m_imported;
 
   MaterialClass m_class;
   PermittivityList m_dkList;

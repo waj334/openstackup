@@ -1,0 +1,104 @@
+/*
+ * This file is part of the Open Stackup distribution (https://github.com/waj334/openstackup).
+ * Copyright (c) 2015 Liviu Ionescu.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+string netObjects[];
+int numNetObjects = 0;
+
+real wireLength(real x1, real x2, real y1, real y2)
+{
+  return sqrt((pow(x2 - x1, 2) + pow(y2 - y1, 2)) );
+}
+
+real arcLength(real ang1, real ang2, real radius)
+{
+  return radius  * 2 * PI / 360 * (ang2 - ang1);
+}
+
+string netJson(string name, string class, string wires)
+{
+	string jsonObj;
+	sprintf(jsonObj, "{\"name\": \"%s\", \"class\": \"%s\", \"wires\": [%s]}", 
+		name, class, wires);
+	return jsonObj;
+}
+
+string wireJson(int layer, real length)
+{
+	string jsonObj;
+	sprintf(jsonObj, "{\"layer\": %d, \"length\": %.9f}", layer, length);
+	return jsonObj;
+}
+
+string payload()
+{
+	//Add the first index now so it's easier to deal with the ','
+	/*string json = "{\"nets\": ["+netObjects[0];
+	int index = 1;
+	while (netObjects[index]) {
+		json += "," + netObjects[index];
+		++index;
+	}
+	
+	json += "]}";*/
+	
+	string json;
+	sprintf(json, "{\"nets\": [%s]}", strjoin(netObjects, ','));
+	return json;
+}
+
+int main(void)
+{
+	int result = 0;
+	
+	if (board) board(B) {
+		B.signals(S) {
+			string wires[];
+			int wireIndex = 0;
+			
+			S.wires(W) {
+				//Is wire on one of the signal layers?
+				if (W.layer < 17) {
+					real length = 0;
+					
+					//Calculate total routed length of wire
+					if (W.arc) {
+						length += arcLength(W.arc.angle1, W.arc.angle2, u2mm(W.arc.radius));
+					} else {
+						length += wireLength(u2mm(W.x2), u2mm(W.x1), u2mm(W.y2), u2mm(W.y1));
+					}
+					
+					//Format wire JSON object
+					wires[wireIndex++] = wireJson(W.layer, length);
+				}
+			}
+			
+			//Format net JSON object
+			netObjects[numNetObjects++] = netJson(S.name, S.class.name, strjoin(wires, ','));
+		}
+		
+		string data = payload();
+		string result;
+		if (netpost(result, "http://localhost:8080/api/v1/nets/update", data) < 0) {
+			dlgMessageBox(neterror());
+		}
+	} else {
+		dlgMessageBox("Start this ULP in a Board");
+		result = -1;
+	}
+	
+	return result;
+}

@@ -35,7 +35,7 @@ UIStackup::UIStackup(QWidget* parent) :
 
   //Create stack up model
   auto& layers = SessionManager::instance()->layers();
-  StackupModel* model = new StackupModel(layers.data(), layers.size(), this);
+  StackupModel* model = new StackupModel(this);
   mp_proxy = new StackupProxyModel(this);
   mp_proxy->setSourceModel(model);
   mp_proxy->setLayerCount(SessionManager::instance()->layerCount());

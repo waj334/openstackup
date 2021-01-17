@@ -53,9 +53,9 @@ UIMainWindow::UIMainWindow(QWidget* parent) :
     this, &UIMainWindow::onMaterials);
 
   connect(SessionManager::instance().get(), &SessionManager::sessionMarkedDirty,
-    this, &UIMainWindow::onSessionMarkedDirty);
+    this, &UIMainWindow::onSessionMarkedDirty, Qt::QueuedConnection);
   connect(SessionManager::instance().get(), &SessionManager::sessionChanged,
-    this, &UIMainWindow::updateWindowTitle);
+    this, &UIMainWindow::updateWindowTitle, Qt::QueuedConnection);
 }
 
 UIMainWindow::~UIMainWindow()

@@ -18,15 +18,13 @@
 #include "net.h"
 
 Net::Net() :
-  Net("", -1, 0)
+  Net("")
 {
 
 }
 
-Net::Net(const QString& name, int layerNumber, double length) :
-  m_name(name),
-  m_layerNumber(layerNumber),
-  m_length(length)
+Net::Net(const QString& name) :
+  m_name(name)
 {
 
 }
@@ -48,20 +46,27 @@ void Net::setName(const QString& name)
 
 double Net::length() const
 {
-  return m_length;
+  double l = 0;
+  for (const auto& w : m_wires) {
+    l += w.m_length;
+  }
+
+  return l;
 }
 
-void Net::setLength(double length)
+Net::WireList& Net::wires()
 {
-  m_length = length;
+  return m_wires;
 }
 
-int Net::layerNumber() const
+const Net::WireList& Net::wires() const
 {
-  return m_layerNumber;
+  return m_wires;
 }
 
-void Net::setLayerNumber(int layerNumber)
+void Net::updateWire(int index, const Wire& wire)
 {
-  m_layerNumber = layerNumber;
+  if (index >= 0 && index < m_wires.count()) {
+    m_wires[index] = wire;
+  }
 }

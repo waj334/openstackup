@@ -25,8 +25,9 @@ Material::Material() :
   //Does nothing
 }
 
-Material::Material(QString name, MaterialClass mclass) :
+Material::Material(QString name, MaterialClass mclass, bool imported) :
   m_name(name),
+  m_imported(imported),
   m_class(mclass)
 {
 
@@ -55,6 +56,11 @@ QString Material::manufacturer() const
 void Material::setManufacturer(const QString& manufacturer)
 {
   m_manufacturer = manufacturer;
+}
+
+bool Material::isImported() const
+{
+    return m_imported;
 }
 
 MaterialClass Material::materialClass() const

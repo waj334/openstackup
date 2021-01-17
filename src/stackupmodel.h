@@ -18,13 +18,15 @@
 #pragma once
 
 #include "layer.h"
+#include "sessionmanager.h"
 
 #include <QAbstractItemModel>
+#include <QReadWriteLock>
 
 class StackupModel : public QAbstractItemModel {
   Q_OBJECT
 public:
-  StackupModel(Layer* layers, size_t count, QObject* parent = nullptr);
+  StackupModel(QObject* parent = nullptr);
 
   // Inherited via QAbstractItemModel
   QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
@@ -37,7 +39,10 @@ public:
   Qt::ItemFlags	flags(const QModelIndex& index) const override;
   bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
 
+private slots:
+  void onSync();
+
 private:
-  Layer* mp_layers;
-  size_t m_layerCount;
+  SessionManager::LayerArray m_layers;
+  mutable QReadWriteLock m_ioLock;
 };

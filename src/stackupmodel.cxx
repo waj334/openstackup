@@ -21,20 +21,24 @@
 
 constexpr int MAX_COLUMN = 4;
 
-StackupModel::StackupModel(Layer* layers, size_t count, QObject* parent) :
-  QAbstractItemModel(parent),
-  mp_layers(layers),
-  m_layerCount(count)
+StackupModel::StackupModel(QObject* parent) :
+  QAbstractItemModel(parent)
 {
+  blockSignals(true);
+  onSync();
+  blockSignals(false);
 
+  connect(SessionManager::instance().get(), &SessionManager::sync,
+    this, &StackupModel::onSync, Qt::QueuedConnection);
 }
 
 QModelIndex StackupModel::index(int row, int column, const QModelIndex& parent) const
 {
+  QReadLocker locker(&m_ioLock);
   QModelIndex index;
 
-  if (row >= 0 && row < m_layerCount && column >= 0 && column < MAX_COLUMN) {
-    index = createIndex(row, column, &mp_layers[row]);
+  if (row >= 0 && row < m_layers.size() && column >= 0 && column < MAX_COLUMN) {
+    index = createIndex(row, column, row);
   }
 
   return index;
@@ -47,11 +51,13 @@ QModelIndex StackupModel::parent(const QModelIndex& child) const
 
 int StackupModel::rowCount(const QModelIndex& parent) const
 {
+  QReadLocker locker(&m_ioLock);
+
   if (parent.isValid()) {
     return 0;
   }
 
-  return m_layerCount;
+  return SessionManager::instance()->layers().size();
 }
 
 int StackupModel::columnCount(const QModelIndex& paren) const
@@ -61,10 +67,11 @@ int StackupModel::columnCount(const QModelIndex& paren) const
 
 QVariant StackupModel::data(const QModelIndex& index, int role) const
 {
+  QReadLocker locker(&m_ioLock);
   QVariant data;
 
   if (index.isValid()) {
-    const Layer* layer = static_cast<Layer*>(index.internalPointer());
+    const Layer layer = m_layers[index.internalId()];
 
     switch (role) {
     case Qt::DisplayRole:
@@ -75,34 +82,34 @@ QVariant StackupModel::data(const QModelIndex& index, int role) const
         }
         break;
       case 1:
-        data = MaterialManager::typeString(layer->materialClass());
+        data = MaterialManager::typeString(layer.materialClass());
         break;
       case 2:
       {
-        if (layer->material().isValid()) {
+        if (layer.material().isValid()) {
           QString name = QString("%1 - %2")
-            .arg(layer->material().manufacturer())
-            .arg(layer->material().name());
+            .arg(layer.material().manufacturer())
+            .arg(layer.material().name());
           data = name;
         }
       }
         break;
       case 3:
         data = QString("%1 %2")
-          .arg(layer->thickness(), 0, 'f', 9)
+          .arg(layer.thickness(), 0, 'f', 9)
           .arg("mm"); //TODO: Handle units
       }
       break;
     case Qt::EditRole:
       switch (index.column()) {
       case 1:
-        data = QVariant::fromValue<MaterialClass>(layer->materialClass());
+        data = QVariant::fromValue<MaterialClass>(layer.materialClass());
         break;
       case 2:
-        data = QVariant::fromValue<Material>(layer->material());
+        data = QVariant::fromValue<Material>(layer.material());
         break;
       case 3:
-        data = layer->thickness();
+        data = layer.thickness();
         break;
       }
       break;
@@ -154,22 +161,25 @@ bool StackupModel::setData(const QModelIndex& index, const QVariant& value, int 
   bool ok = false;
   
   if (index.isValid()) {
-    Layer* layer = static_cast<Layer*>(index.internalPointer());
+    Layer layer = m_layers[index.internalId()];
+
     if (role == Qt::EditRole) {
       switch (index.column()) {
       case 1:
-        layer->setMaterialClass(value.value<MaterialClass>());
+        layer.setMaterialClass(value.value<MaterialClass>());
         ok = true;
         break;
       case 2:
-        layer->setMaterial(value.value<Material>());
+        layer.setMaterial(value.value<Material>());
         ok = true;
         break;
       case 3:
-        layer->setThickness(value.toDouble());
+        layer.setThickness(value.toDouble());
         ok = true;
         break;
       }
+
+      SessionManager::instance()->updateLayer(index.internalId(), layer);
 
       if (ok) {
         emit dataChanged(index, index, QVector<int>() << Qt::EditRole);
@@ -178,4 +188,22 @@ bool StackupModel::setData(const QModelIndex& index, const QVariant& value, int 
   }
 
   return ok;
+}
+
+void StackupModel::onSync()
+{
+  // Lock for writing to prevent other threads from
+  // changing the data during a render
+
+  m_ioLock.lockForWrite();
+  m_layers = SessionManager::instance()->layers();
+  m_ioLock.unlock();
+
+  m_ioLock.lockForRead();
+  QModelIndex start = index(0, 0);
+  QModelIndex end = index(m_layers.size()-1, columnCount());
+
+  emit dataChanged(start, end);
+  m_ioLock.unlock();
+
 }

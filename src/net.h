@@ -17,25 +17,35 @@
 
 #pragma once
 
+#include <QList>
 #include <QString>
 
 class Net {
 public:
+  struct Wire {
+    double m_length;
+    int m_layer;
+  };
+
+  using WireList = QList<Wire>;
+
   Net();
-  Net(const QString& name, int layerNumber, double length);
+  Net(const QString& name);
   ~Net();
 
   QString name() const;
   void setName(const QString& name);
 
   double length() const;
-  void setLength(double length);
 
   int layerNumber() const;
   void setLayerNumber(int layerNumber);
 
+  WireList& wires();
+  const WireList& wires() const;
+  void updateWire(int index, const Wire& wire);
+
 private:
   QString m_name;
-  double m_length;
-  int m_layerNumber;
+  WireList m_wires;
 };

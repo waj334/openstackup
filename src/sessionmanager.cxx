@@ -19,6 +19,8 @@
 
 #include <QDataStream>
 #include <QFile>
+#include <QReadLocker>
+#include <QWriteLocker>
 #include <QVariant>
 
 constexpr int SESSION_VERSION = 0;
@@ -35,25 +37,42 @@ SessionManager::~SessionManager()
 
 SessionManager::LayerArray& SessionManager::layers()
 {
+  QReadLocker locker(&m_ioLock);
   return m_layers;
 }
 
 const SessionManager::LayerArray& SessionManager::layers() const
 {
+  QReadLocker locker(&m_ioLock);
   return m_layers;
+}
+
+void SessionManager::updateLayer(int index, const Layer& layer)
+{
+  m_ioLock.lockForWrite();
+  if (index >= 0 && index < m_layers.size()) {
+    m_layers[index] = layer;
+  }
+  m_ioLock.unlock();
+
+  emit sync();
 }
 
 
 int SessionManager::layerCount() const
 {
+  QReadLocker locker(&m_ioLock);
   return m_layerCount;
 }
 
 void SessionManager::setLayerCount(int count)
 {
+  m_ioLock.lockForWrite();
   m_layerCount = count;
-  emit layerCountChanged(count);
+  m_ioLock.unlock();
+
   markSessionDirty();
+  emit layerCountChanged(count);
 }
 
 void SessionManager::markSessionDirty()
@@ -76,6 +95,7 @@ bool SessionManager::saveSession(const QString& fname)
 {
   bool result = false;
 
+  m_ioLock.lockForRead();
   QString outFname = fname.isEmpty() ? m_sessionFname : fname;
   if (!outFname.isEmpty()) {
     QFile file(outFname);
@@ -103,6 +123,7 @@ bool SessionManager::saveSession(const QString& fname)
       result = true;
     }
   }
+  m_ioLock.unlock();
 
   if (result) {
     m_sessionFname = fname;
@@ -122,6 +143,7 @@ bool SessionManager::loadSession(const QString& fname)
 {
   bool result = false;
 
+  m_ioLock.lockForWrite();
   QFile file(fname);
   if (file.open(QIODevice::ReadOnly)) {
     QDataStream in(&file);
@@ -145,6 +167,7 @@ bool SessionManager::loadSession(const QString& fname)
     //Success!
     result = true;
   }
+  m_ioLock.unlock();
 
   if (result) {
     m_sessionFname = fname;
@@ -165,6 +188,8 @@ bool SessionManager::loadSession(const QString& fname)
 
 void SessionManager::resetSession()
 {
+  m_ioLock.lockForWrite();
+
   //Reset path to saved session
   m_sessionFname = "";
 
@@ -174,6 +199,9 @@ void SessionManager::resetSession()
 
   //Reset dirty state
   m_sessionIsDirty = false;
+
+  m_ioLock.unlock();
+
   emit  sessionMarkedDirty(false);
 
   //Notify other components that the session has changed

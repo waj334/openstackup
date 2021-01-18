@@ -44,17 +44,7 @@ string wireJson(int layer, real length)
 }
 
 string payload()
-{
-	//Add the first index now so it's easier to deal with the ','
-	/*string json = "{\"nets\": ["+netObjects[0];
-	int index = 1;
-	while (netObjects[index]) {
-		json += "," + netObjects[index];
-		++index;
-	}
-	
-	json += "]}";*/
-	
+{	
 	string json;
 	sprintf(json, "{\"nets\": [%s]}", strjoin(netObjects, ','));
 	return json;

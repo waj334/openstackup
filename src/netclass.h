@@ -20,29 +20,19 @@
 #include <QDataStream>
 #include <QList>
 #include <QMetaType>
-#include <QString>
+#include <QStringList>
 
-class Net {
+class NetClass {
 public:
-  struct Wire {
-    double m_length;
-    int m_layer;
-  };
+  explicit NetClass();
+  ~NetClass();
 
-  using WireList = QList<Wire>;
-
-  Net();
-  Net(const QString& name);
-  ~Net();
-
-  QString name() const;
+  const QString& name() const;
   void setName(const QString& name);
 
-  double length() const;
-
-  WireList& wires();
-  const WireList& wires() const;
-  void updateWire(int index, const Wire& wire);
+  QStringList& nets();
+  const QStringList& nets() const;
+  void setNets(const QStringList& nets);
 
   static int version();
   QDataStream& write(QDataStream& stream) const;
@@ -50,21 +40,21 @@ public:
 
 private:
   QString m_name;
-  WireList m_wires;
+  QStringList m_nets;
 
   void readV0(QDataStream& stream);
 };
 
-Q_DECLARE_METATYPE(Net)
+Q_DECLARE_METATYPE(NetClass)
 
-using NetList = QList<Net>;
+using NetClassList = QList<NetClass>;
 
-inline QDataStream& operator<<(QDataStream& stream, const Net& net)
+inline QDataStream& operator<<(QDataStream& stream, const NetClass& netClass)
 {
-  return net.write(stream);
+  return netClass.write(stream);
 }
 
-inline QDataStream& operator>>(QDataStream& stream, Net& net)
+inline QDataStream& operator>>(QDataStream& stream, NetClass& netClass)
 {
-  return net.read(stream);
+  return netClass.read(stream);
 }

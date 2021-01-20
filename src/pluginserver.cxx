@@ -15,7 +15,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "net.h"
 #include "pluginserver.h"
+#include "sessionmanager.h"
+
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 
 PluginServer::PluginServer(QObject* parent) :
   QObject(parent)
@@ -58,8 +65,72 @@ std::unique_ptr<PluginServer::router_t> PluginServer::router()
 
   router->http_post("/api/v1/nets/update",
     [](auto req, auto params) {
-      auto resp = req->create_response();
-      return resp.done();
+      //Parse JSON body
+      QJsonParseError err;
+      auto doc = QJsonDocument::fromJson(req->body().c_str(), &err);
+
+      if (err.error == QJsonParseError::NoError) {
+        auto root = doc.object()["nets"];
+        if (root.isArray()) {
+          NetList nets;
+          NetClassList classes;
+
+          //Convert array to list of nets
+          for (const auto& element : root.toArray()) {
+            auto obj = element.toObject();
+
+            Net net(obj["name"].toString());
+            NetClass netClass;
+            
+            //Handle net class
+            QString netClassName = obj["class"].toString();
+            auto it = std::find_if(classes.begin(), classes.end(), [&netClassName](const NetClass& netClass) {
+              return netClass.name() == netClassName;
+            });
+
+            if (it == classes.end()) {
+              //Add this net class
+              NetClass netClass;
+              netClass.setName(netClassName);
+              netClass.nets() << net.name();
+
+              classes << netClass;
+            }
+            else {
+              (*it).nets() << net.name();
+            }
+
+            //Convert array of wire object
+            for (const auto& element : obj["wires"].toArray()) {
+              auto obj = element.toObject();
+              Net::Wire wire;
+              wire.m_layer = obj["layer"].toInt();
+              wire.m_length = obj["length"].toDouble();
+              
+              auto& wires = net.wires();
+              wires << wire;
+            }
+
+            nets << net;
+          }
+
+          //Update session
+          SessionManager::instance()->setNets(nets);
+          SessionManager::instance()->setNetClasses(classes);
+        }
+        else {
+          return req->create_response(restinio::status_bad_request())
+            .done();
+        }
+      }
+      else {
+        return req->create_response(restinio::status_bad_request())
+          .done();
+      }
+
+      //Success!
+      return req->create_response()
+        .done();
     });
 
   return router;

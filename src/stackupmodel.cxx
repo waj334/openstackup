@@ -24,9 +24,7 @@ constexpr int MAX_COLUMN = 4;
 StackupModel::StackupModel(QObject* parent) :
   QAbstractItemModel(parent)
 {
-  blockSignals(true);
   onSync();
-  blockSignals(false);
 
   connect(SessionManager::instance().get(), &SessionManager::sync,
     this, &StackupModel::onSync, Qt::QueuedConnection);
@@ -194,16 +192,13 @@ void StackupModel::onSync()
 {
   // Lock for writing to prevent other threads from
   // changing the data during a render
-
   m_ioLock.lockForWrite();
   m_layers = SessionManager::instance()->layers();
   m_ioLock.unlock();
 
   m_ioLock.lockForRead();
-  QModelIndex start = index(0, 0);
-  QModelIndex end = index(m_layers.size()-1, columnCount());
-
-  emit dataChanged(start, end);
+  emit beginResetModel();
+  emit endResetModel();
   m_ioLock.unlock();
 
 }

@@ -28,7 +28,13 @@ PermittivityModel::PermittivityModel(Material* material, QObject* parent) :
 
 int PermittivityModel::rowCount(const QModelIndex& parent) const
 {
-  return mp_material->permittivityList().count();
+  int count = 0;
+
+  if (!parent.isValid()) {
+    count = mp_material->permittivityList().count();
+  }
+
+  return count;
 }
 
 int PermittivityModel::columnCount(const QModelIndex& parent) const
@@ -40,28 +46,30 @@ QVariant PermittivityModel::data(const QModelIndex& index, int role) const
 {
   QVariant data;
 
-  auto dk = mp_material->permittivityList()[index.row()];
+  if (index.isValid()) {
+    auto dk = mp_material->permittivityList()[index.row()];
 
-  if (role == Qt::DisplayRole) {
-    switch (index.column()) {
-    case 0:
-      data = QString("%1 MHz")
-        .arg(dk.m_frequency);
-      break;
-    case 1:
-      data = QString::number(dk.m_dk, 'f');
-      break;
+    if (role == Qt::DisplayRole) {
+      switch (index.column()) {
+      case 0:
+        data = QString("%1 MHz")
+          .arg(dk.m_frequency);
+        break;
+      case 1:
+        data = QString::number(dk.m_dk, 'f');
+        break;
+      }
     }
-  }
-  else if (role == Qt::EditRole) {
-    switch (index.column()) {
-    case 0:
-      data = QString("%1 MHz")
-        .arg(dk.m_frequency);
-      break;
-    case 1:
-      data = QString::number(dk.m_dk, 'f');
-      break;
+    else if (role == Qt::EditRole) {
+      switch (index.column()) {
+      case 0:
+        data = QString("%1 MHz")
+          .arg(dk.m_frequency);
+        break;
+      case 1:
+        data = QString::number(dk.m_dk, 'f');
+        break;
+      }
     }
   }
 

@@ -17,6 +17,8 @@
 
 #include "net.h"
 
+constexpr int NET_VERSION = 0;
+
 Net::Net() :
   Net("")
 {
@@ -68,5 +70,54 @@ void Net::updateWire(int index, const Wire& wire)
 {
   if (index >= 0 && index < m_wires.count()) {
     m_wires[index] = wire;
+  }
+}
+
+int Net::version()
+{
+  return NET_VERSION;
+}
+
+QDataStream& Net::write(QDataStream& stream) const {
+  //Write version
+  stream << Net::version();
+
+  stream << m_name;
+
+  stream << m_wires.count();
+  for (const auto& wire : m_wires) {
+    stream << wire.m_layer << wire.m_length;
+  }
+
+  return stream;
+}
+
+QDataStream& Net::read(QDataStream& stream)
+{
+  //Read version
+  int version = -1;
+  stream >> version;
+
+  switch (version) {
+  case 0:
+    readV0(stream);
+    break;
+  }
+
+  return stream;
+}
+
+void Net::readV0(QDataStream& stream)
+{
+  stream >> m_name;
+
+  int count;
+  stream >> count;
+
+  for (int i = 0; i < count; ++i) {
+    Wire wire;
+    stream >> wire.m_layer >> wire.m_length;
+
+    m_wires << wire;
   }
 }

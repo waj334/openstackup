@@ -25,6 +25,9 @@ set(srcs
 	materialmanager.cxx
 	materialmodel.cxx
 	net.cxx
+	netclass.cxx
+	netclassmodel.cxx
+	netmodel.cxx
 	permittivitydelegate.cxx
 	permittivitymodel.cxx
 	pluginserver.cxx
@@ -35,6 +38,7 @@ set(srcs
 	uiabout.cxx
 	uimainwindow.cxx
 	uimaterials.cxx
+	uinetproperties.cxx
 	uistackup.cxx
 )
 
@@ -42,6 +46,7 @@ set(ui_files
 	uiabout.ui
 	uimainwindow.ui
 	uimaterials.ui
+	uinetproperties.ui
 	uistackup.ui
 )
 

@@ -18,6 +18,8 @@
 #include "uimainwindow.h"
 #include "ui_uimainwindow.h"
 
+#include "netclassmodel.h"
+#include "netmodel.h"
 #include "sessionmanager.h"
 #include "uiabout.h"
 #include "uimaterials.h"
@@ -34,6 +36,13 @@ UIMainWindow::UIMainWindow(QWidget* parent) :
   mp_ui(new Ui::UIMainWindow)
 {
   mp_ui->setupUi(this);
+
+  //Set up net item model
+  NetModel* netModel = new NetModel(this);
+  mp_ui->netsTable->setModel(netModel);
+
+  NetClassModel* netClassModel = new NetClassModel(this);
+  mp_ui->netClassesTable->setModel(netClassModel);
 
   connect(mp_ui->actionNew_Session, &QAction::triggered,
     this, &UIMainWindow::onNewSession);

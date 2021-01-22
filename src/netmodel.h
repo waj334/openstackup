@@ -39,8 +39,4 @@ public:
 
 private slots:
   void onSync();
-
-private:
-  NetList m_nets;
-  mutable QReadWriteLock m_ioLock;
 };

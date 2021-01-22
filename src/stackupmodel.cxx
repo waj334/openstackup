@@ -22,35 +22,14 @@
 constexpr int MAX_COLUMN = 4;
 
 StackupModel::StackupModel(QObject* parent) :
-  QAbstractItemModel(parent)
+  QAbstractTableModel(parent)
 {
-  onSync();
-
   connect(SessionManager::instance().get(), &SessionManager::sync,
     this, &StackupModel::onSync, Qt::QueuedConnection);
 }
 
-QModelIndex StackupModel::index(int row, int column, const QModelIndex& parent) const
-{
-  QReadLocker locker(&m_ioLock);
-  QModelIndex index;
-
-  if (row >= 0 && row < m_layers.size() && column >= 0 && column < MAX_COLUMN) {
-    index = createIndex(row, column, row);
-  }
-
-  return index;
-}
-
-QModelIndex StackupModel::parent(const QModelIndex& child) const
-{
-  return QModelIndex();
-}
-
 int StackupModel::rowCount(const QModelIndex& parent) const
 {
-  QReadLocker locker(&m_ioLock);
-
   if (parent.isValid()) {
     return 0;
   }
@@ -65,11 +44,10 @@ int StackupModel::columnCount(const QModelIndex& paren) const
 
 QVariant StackupModel::data(const QModelIndex& index, int role) const
 {
-  QReadLocker locker(&m_ioLock);
   QVariant data;
 
   if (index.isValid()) {
-    const Layer layer = m_layers[index.internalId()];
+    const Layer layer = SessionManager::instance()->layers()[index.row()];
 
     switch (role) {
     case Qt::DisplayRole:
@@ -159,7 +137,7 @@ bool StackupModel::setData(const QModelIndex& index, const QVariant& value, int 
   bool ok = false;
   
   if (index.isValid()) {
-    Layer layer = m_layers[index.internalId()];
+    Layer& layer = SessionManager::instance()->layers()[index.row()];
 
     if (role == Qt::EditRole) {
       switch (index.column()) {
@@ -190,15 +168,6 @@ bool StackupModel::setData(const QModelIndex& index, const QVariant& value, int 
 
 void StackupModel::onSync()
 {
-  // Lock for writing to prevent other threads from
-  // changing the data during a render
-  m_ioLock.lockForWrite();
-  m_layers = SessionManager::instance()->layers();
-  m_ioLock.unlock();
-
-  m_ioLock.lockForRead();
   emit beginResetModel();
   emit endResetModel();
-  m_ioLock.unlock();
-
 }

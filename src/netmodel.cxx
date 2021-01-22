@@ -21,8 +21,6 @@
 NetModel::NetModel(QObject* parent) :
   QAbstractTableModel(parent)
 {
-  onSync();
-
   connect(SessionManager::instance().get(), &SessionManager::sync,
     this, &NetModel::onSync, Qt::QueuedConnection);
   connect(SessionManager::instance().get(), &SessionManager::sessionChanged,
@@ -31,11 +29,10 @@ NetModel::NetModel(QObject* parent) :
 
 int NetModel::rowCount(const QModelIndex& parent) const
 {
-  QReadLocker locker(&m_ioLock);
   int count = 0;
 
   if (!parent.isValid()) {
-    count = m_nets.count();
+    count = SessionManager::instance()->nets().count();
   }
 
   return count;
@@ -48,11 +45,10 @@ int NetModel::columnCount(const QModelIndex& parent) const
 
 QVariant NetModel::data(const QModelIndex& index, int role) const
 {
-  QReadLocker locker(&m_ioLock);
   QVariant data;
 
   if (index.isValid()) {
-    auto net = m_nets[index.row()];
+    auto net = SessionManager::instance()->nets()[index.row()];
 
     if (role == Qt::DisplayRole) {
       switch (index.column()) {
@@ -107,14 +103,6 @@ Qt::ItemFlags NetModel::flags(const QModelIndex& index) const
 
 void NetModel::onSync()
 {
-  // Lock for writing to prevent other threads from
-  // changing the data during a render
-  m_ioLock.lockForWrite();
-  m_nets = SessionManager::instance()->nets();
-  m_ioLock.unlock();
-
-  m_ioLock.lockForRead();
   emit beginResetModel();
   emit endResetModel();
-  m_ioLock.unlock();
 }

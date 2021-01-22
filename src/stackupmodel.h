@@ -23,14 +23,11 @@
 #include <QAbstractItemModel>
 #include <QReadWriteLock>
 
-class StackupModel : public QAbstractItemModel {
+class StackupModel : public QAbstractTableModel {
   Q_OBJECT
 public:
   StackupModel(QObject* parent = nullptr);
 
-  // Inherited via QAbstractItemModel
-  QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
-  QModelIndex parent(const QModelIndex& child) const override;
   int rowCount(const QModelIndex& parent = QModelIndex()) const override;
   int columnCount(const QModelIndex& parent = QModelIndex()) const override;
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
@@ -41,8 +38,4 @@ public:
 
 private slots:
   void onSync();
-
-private:
-  SessionManager::LayerArray m_layers;
-  mutable QReadWriteLock m_ioLock;
 };

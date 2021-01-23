@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>364</width>
-    <height>609</height>
+    <width>381</width>
+    <height>706</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,6 +37,13 @@
    </item>
    <item>
     <widget class="QTableView" name="wireTable"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="totalRoutedDistanceLabel">
+     <property name="text">
+      <string>Total Routed Distance: %1 mm</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

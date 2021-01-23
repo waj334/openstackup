@@ -18,10 +18,15 @@
 #include "uinetproperties.h"
 #include "ui_uinetproperties.h"
 
-UINetProperties::UINetProperties(QWidget* parent) :
-  QWidget(parent)
+UINetProperties::UINetProperties(Net* net, QWidget* parent) :
+  QWidget(parent),
+  mp_ui(new Ui::UINetProperties),
+  mp_net(net)
 {
+  assert(net);
+  mp_ui->setupUi(this);
 
+  mp_ui->nameLineEdit->setText(mp_net->name());
 }
 
 UINetProperties::~UINetProperties()

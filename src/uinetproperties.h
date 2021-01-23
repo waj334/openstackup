@@ -19,6 +19,8 @@
 
 #include <QWidget>
 
+#include "net.h"
+
 namespace Ui {
   class UINetProperties;
 }
@@ -26,9 +28,10 @@ namespace Ui {
 class UINetProperties : public QWidget {
   Q_OBJECT
 public:
-  explicit UINetProperties(QWidget* parent = nullptr);
+  explicit UINetProperties(Net* net, QWidget* parent = nullptr);
   ~UINetProperties();
 
 private:
   Ui::UINetProperties* mp_ui;
+  Net* mp_net = nullptr;
 };

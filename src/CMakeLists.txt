@@ -32,6 +32,7 @@ set(srcs
 	permittivitymodel.cxx
 	pluginserver.cxx
 	sessionmanager.cxx
+	signalpropagationdelaymodel.cxx
 	stackupdelegate.cxx
 	stackupmodel.cxx
 	stackupproxymodel.cxx

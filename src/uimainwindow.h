@@ -41,11 +41,15 @@ public slots:
   void onStackupSettings();
   void onMaterials();
 
+  void onNetClicked(const QModelIndex& index);
+  void onNetClassClicked(const QModelIndex& index);
+
 protected:
   void closeEvent(QCloseEvent* event) override;
 
 private slots:
   void updateWindowTitle();
+  void showProperties(QWidget* widget);
 
 private:
   Ui::UIMainWindow* mp_ui;

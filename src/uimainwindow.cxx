@@ -23,6 +23,7 @@
 #include "sessionmanager.h"
 #include "uiabout.h"
 #include "uimaterials.h"
+#include "uinetproperties.h"
 #include "uistackup.h"
 
 #include <QApplication>
@@ -60,6 +61,10 @@ UIMainWindow::UIMainWindow(QWidget* parent) :
     this, &UIMainWindow::onStackupSettings);
   connect(mp_ui->actionMaterials, &QAction::triggered,
     this, &UIMainWindow::onMaterials);
+  connect(mp_ui->netsTable, &QTableView::clicked,
+    this, &UIMainWindow::onNetClicked);
+  connect(mp_ui->netClassesTable, &QTableView::clicked,
+    this, &UIMainWindow::onNetClassClicked);
 
   connect(SessionManager::instance().get(), &SessionManager::sessionMarkedDirty,
     this, &UIMainWindow::onSessionMarkedDirty, Qt::QueuedConnection);
@@ -208,6 +213,24 @@ void UIMainWindow::closeEvent(QCloseEvent* event)
   }
 }
 
+void UIMainWindow::onNetClicked(const QModelIndex& index)
+{
+  if (index.isValid()) {
+    Net& net = SessionManager::instance()->nets()[index.row()];
+
+    UINetProperties* propertiesUI = new UINetProperties(&net, this);
+    showProperties(propertiesUI);
+  }
+}
+
+void UIMainWindow::onNetClassClicked(const QModelIndex& index)
+{
+  if (index.isValid()) {
+    NetClass& netClass = SessionManager::instance()->netClasses()[index.row()];
+    showProperties(nullptr);
+  }
+}
+
 void UIMainWindow::updateWindowTitle()
 {
   QString title = "%1%2%3";
@@ -230,4 +253,14 @@ void UIMainWindow::updateWindowTitle()
   title = title.arg(QApplication::applicationName());
 
   setWindowTitle(title);
+}
+
+void UIMainWindow::showProperties(QWidget* widget)
+{
+  QWidget* oldWidget = mp_ui->propertiesDock->widget();
+  if (oldWidget) {
+    oldWidget->deleteLater();
+  }
+
+  mp_ui->propertiesDock->setWidget(widget);
 }

@@ -43,6 +43,49 @@ int NetModel::columnCount(const QModelIndex& parent) const
   return 2;
 }
 
+bool NetModel::insertRows(int row, int count, const QModelIndex& parent)
+{
+  bool result = false;
+
+  if (!parent.isValid() && row >= 0) {
+    auto& nets = SessionManager::instance()->nets();
+
+    beginInsertRows(parent, row, (row + count) - 1);
+
+    for (int i = row; i < row + count; ++i) {
+      Net net;
+      net.setName("New net");
+
+      nets.insert(i, net);
+    }
+
+    endInsertRows();
+    result = true;
+  }
+
+  return result;
+}
+
+bool NetModel::removeRows(int row, int count, const QModelIndex& parent)
+{
+  bool result = false;
+
+  if (!parent.isValid() && row >= 0) {
+    auto& nets = SessionManager::instance()->nets();
+
+    beginRemoveRows(parent, row, (row + count) - 1);
+
+    for (int i = 0; i < count; ++i) {
+      nets.removeAt(row);
+    }
+
+    endRemoveRows();
+    result = true;
+  }
+
+  return result;
+}
+
 QVariant NetModel::data(const QModelIndex& index, int role) const
 {
   QVariant data;
@@ -61,20 +104,38 @@ QVariant NetModel::data(const QModelIndex& index, int role) const
         break;
       }
     }
-    /*else if (role == Qt::EditRole) {
+    else if (role == Qt::EditRole) {
       switch (index.column()) {
       case 0:
-        data = QString("%1 MHz")
-          .arg(dk.m_frequency);
-        break;
-      case 1:
-        data = QString::number(dk.m_dk, 'f');
+        data = net.name();
         break;
       }
-    }*/
+    }
   }
 
   return data;
+}
+
+bool NetModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  bool result = false;
+  
+  if (index.isValid()) {
+    auto& net = SessionManager::instance()->nets()[index.row()];
+
+    if (role == Qt::EditRole) {
+      switch (index.column()) {
+      case 0:
+        net.setName(value.toString());
+        break;
+      }
+
+      emit dataChanged(index, index, QVector<int>() << role);
+      result = true;
+    }
+  }
+  
+  return result;
 }
 
 QVariant NetModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -98,6 +159,11 @@ QVariant NetModel::headerData(int section, Qt::Orientation orientation, int role
 Qt::ItemFlags NetModel::flags(const QModelIndex& index) const
 {
   Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+
+  if (index.column() == 0) {
+    flags |= Qt::ItemIsEditable;
+  }
+
   return flags;
 }
 

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <QDataStream>
 #include <QMetaType>
 
 enum class MaterialClass : unsigned int {
@@ -25,5 +26,8 @@ enum class MaterialClass : unsigned int {
 	NONE,
 	PREPREG
 };
+
+QDataStream& operator<<(QDataStream& stream, const MaterialClass& mclass);
+QDataStream& operator>>(QDataStream& stream, MaterialClass& mclass);
 
 Q_DECLARE_METATYPE(MaterialClass)

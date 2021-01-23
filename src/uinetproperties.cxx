@@ -15,42 +15,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "uinetproperties.h"
+#include "ui_uinetproperties.h"
 
-#include <QMainWindow>
+UINetProperties::UINetProperties(Net* net, QWidget* parent) :
+  QWidget(parent),
+  mp_ui(new Ui::UINetProperties),
+  mp_net(net)
+{
+  assert(net);
+  mp_ui->setupUi(this);
 
-namespace Ui {
-  class UIMainWindow;
+  mp_ui->nameLineEdit->setText(mp_net->name());
 }
 
-class UIMainWindow : public QMainWindow {
-  Q_OBJECT
-public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
-
-public slots:
-  void onNewSession();
-  void onOpenSession();
-  bool onSaveSession();
-  void onSaveSessionAs();
-
-  void onSessionMarkedDirty(bool dirty);
-
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
-
-  void onNetClicked(const QModelIndex& index);
-  void onNetClassClicked(const QModelIndex& index);
-
-protected:
-  void closeEvent(QCloseEvent* event) override;
-
-private slots:
-  void updateWindowTitle();
-  void showProperties(QWidget* widget);
-
-private:
-  Ui::UIMainWindow* mp_ui;
-};
+UINetProperties::~UINetProperties()
+{
+  delete mp_ui;
+}

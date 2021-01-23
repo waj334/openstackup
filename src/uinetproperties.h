@@ -17,40 +17,21 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QWidget>
+
+#include "net.h"
 
 namespace Ui {
-  class UIMainWindow;
+  class UINetProperties;
 }
 
-class UIMainWindow : public QMainWindow {
+class UINetProperties : public QWidget {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
-
-public slots:
-  void onNewSession();
-  void onOpenSession();
-  bool onSaveSession();
-  void onSaveSessionAs();
-
-  void onSessionMarkedDirty(bool dirty);
-
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
-
-  void onNetClicked(const QModelIndex& index);
-  void onNetClassClicked(const QModelIndex& index);
-
-protected:
-  void closeEvent(QCloseEvent* event) override;
-
-private slots:
-  void updateWindowTitle();
-  void showProperties(QWidget* widget);
+  explicit UINetProperties(Net* net, QWidget* parent = nullptr);
+  ~UINetProperties();
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  Ui::UINetProperties* mp_ui;
+  Net* mp_net = nullptr;
 };

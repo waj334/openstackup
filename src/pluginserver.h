@@ -17,40 +17,27 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QObject>
+#include <restinio/all.hpp>
 
-namespace Ui {
-  class UIMainWindow;
-}
-
-class UIMainWindow : public QMainWindow {
+class PluginServer : public QObject {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  explicit PluginServer(QObject* parent = nullptr);
+  ~PluginServer();
 
-public slots:
-  void onNewSession();
-  void onOpenSession();
-  bool onSaveSession();
-  void onSaveSessionAs();
-
-  void onSessionMarkedDirty(bool dirty);
-
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
-
-  void onNetClicked(const QModelIndex& index);
-  void onNetClassClicked(const QModelIndex& index);
-
-protected:
-  void closeEvent(QCloseEvent* event) override;
-
-private slots:
-  void updateWindowTitle();
-  void showProperties(QWidget* widget);
+  bool start();
 
 private:
-  Ui::UIMainWindow* mp_ui;
+  using router_t = restinio::router::express_router_t<>;
+  using traits_t =
+    restinio::traits_t<
+    restinio::asio_timer_manager_t,
+    restinio::shared_ostream_logger_t,
+    router_t >;
+
+  restinio::running_server_handle_t<traits_t> m_server;
+  bool m_isRunning = false;
+
+  std::unique_ptr<PluginServer::router_t> router();
 };

@@ -17,14 +17,17 @@
 
 #include "material.h"
 
+constexpr int MATERIAL_VERSION = 0;
+
 Material::Material() :
   Material("", MaterialClass::NONE)
 {
   //Does nothing
 }
 
-Material::Material(QString name, MaterialClass mclass) :
+Material::Material(QString name, MaterialClass mclass, bool imported) :
   m_name(name),
+  m_imported(imported),
   m_class(mclass)
 {
 
@@ -53,6 +56,11 @@ QString Material::manufacturer() const
 void Material::setManufacturer(const QString& manufacturer)
 {
   m_manufacturer = manufacturer;
+}
+
+bool Material::isImported() const
+{
+    return m_imported;
 }
 
 MaterialClass Material::materialClass() const
@@ -94,4 +102,52 @@ bool Material::isValid() const
 {
   return !m_name.isEmpty() && !m_dkList.isEmpty() 
     && m_class != MaterialClass::NONE;
+}
+
+int Material::version()
+{
+  return MATERIAL_VERSION;
+}
+
+QDataStream& Material::write(QDataStream& stream) const {
+  //Write version
+  stream << Material::version();
+
+  stream << m_name << m_manufacturer << m_class;
+
+  stream << m_dkList.count();
+  for (const auto& dk : m_dkList) {
+    stream << dk.m_dk << dk.m_frequency;
+  }
+
+  return stream;
+}
+
+QDataStream& Material::read(QDataStream& stream)
+{
+  //Read version
+  int version = -1;
+  stream >> version;
+
+  switch (version) {
+  case 0:
+    readV0(stream);
+    break;
+  }
+
+  return stream;
+}
+
+void Material::readV0(QDataStream& stream)
+{
+  stream >> m_name >> m_manufacturer >> m_class;
+  
+  int count;
+  stream >> count;
+
+  for (int i = 0; i < count; ++i) {
+    Permittivity dk;
+    stream >> dk.m_dk >> dk.m_frequency;
+    m_dkList << dk;
+  }
 }

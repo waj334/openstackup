@@ -17,42 +17,22 @@
 
 #pragma once
 
-#include "enums.h"
-
+#include <QDataStream>
 #include <QList>
 #include <QMetaType>
-#include <QString>
+#include <QStringList>
 
-class Material {
+class NetClass {
 public:
-  struct Permittivity {
-    quint32 m_frequency;
-    double m_dk;
-  };
+  explicit NetClass();
+  ~NetClass();
 
-  using PermittivityList = QList<Permittivity>;
-
-  Material();
-  Material(QString name, MaterialClass mclass, bool imported = false);
-  ~Material();
-
-  QString name() const;
+  const QString& name() const;
   void setName(const QString& name);
 
-  QString manufacturer() const;
-  void setManufacturer(const QString& manufacturer);
-
-  bool isImported() const;
-
-  MaterialClass materialClass() const;
-  void setMaterialClass(const MaterialClass& mclass);
-
-  PermittivityList& permittivityList();
-  const PermittivityList& permittivityList() const;
-
-  double permittivity(int frequency);
-
-  bool isValid() const;
+  QStringList& nets();
+  const QStringList& nets() const;
+  void setNets(const QStringList& nets);
 
   static int version();
   QDataStream& write(QDataStream& stream) const;
@@ -60,23 +40,21 @@ public:
 
 private:
   QString m_name;
-  QString m_manufacturer;
-  bool m_imported;
-
-  MaterialClass m_class;
-  PermittivityList m_dkList;
+  QStringList m_nets;
 
   void readV0(QDataStream& stream);
 };
 
-Q_DECLARE_METATYPE(Material)
+Q_DECLARE_METATYPE(NetClass)
 
-inline QDataStream& operator<<(QDataStream& stream, const Material& material)
+using NetClassList = QList<NetClass>;
+
+inline QDataStream& operator<<(QDataStream& stream, const NetClass& netClass)
 {
-  return material.write(stream);
+  return netClass.write(stream);
 }
 
-inline QDataStream& operator>>(QDataStream& stream, Material& material)
+inline QDataStream& operator>>(QDataStream& stream, NetClass& netClass)
 {
-  return material.read(stream);
+  return netClass.read(stream);
 }

@@ -21,6 +21,7 @@
 #include "netclassmodel.h"
 #include "netmodel.h"
 #include "sessionmanager.h"
+#include "signalpropagationdelaymodel.h"
 #include "uiabout.h"
 #include "uimaterials.h"
 #include "uinetproperties.h"
@@ -44,6 +45,11 @@ UIMainWindow::UIMainWindow(QWidget* parent) :
 
   NetClassModel* netClassModel = new NetClassModel(this);
   mp_ui->netClassesTable->setModel(netClassModel);
+
+  //Set up signal propagation delay table
+  SignalPropagationDelayModel* sigDelayModel 
+    = new SignalPropagationDelayModel(this);
+  mp_ui->signalPropagationTable->setModel(sigDelayModel);
 
   connect(mp_ui->actionNew_Session, &QAction::triggered,
     this, &UIMainWindow::onNewSession);

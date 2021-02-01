@@ -16,6 +16,7 @@
  */
 
 #include "net.h"
+#include "sessionmanager.h"
 
 constexpr int NET_VERSION = 0;
 
@@ -46,11 +47,12 @@ void Net::setName(const QString& name)
   m_name = name;
 }
 
-double Net::length() const
+double Net::length(int layer) const
 {
   double l = 0;
-  for (const auto& w : m_wires) {
-    l += w.m_length;
+  for (const auto& wire : m_wires) {
+    if (layer == -1 || layer == wire.m_layer)
+      l += wire.m_length;
   }
 
   return l;
@@ -105,6 +107,17 @@ QDataStream& Net::read(QDataStream& stream)
   }
 
   return stream;
+}
+
+void Net::layers(QList<int>& layers) const
+{
+  for (const auto& wire : m_wires) {
+    //Check for duplicate
+    if (!layers.contains(wire.m_layer))
+    {
+      layers << wire.m_layer;
+    }
+  }
 }
 
 void Net::readV0(QDataStream& stream)

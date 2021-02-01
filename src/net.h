@@ -38,7 +38,7 @@ public:
   QString name() const;
   void setName(const QString& name);
 
-  double length() const;
+  double length(int layer = -1) const;
 
   WireList& wires();
   const WireList& wires() const;
@@ -47,6 +47,8 @@ public:
   static int version();
   QDataStream& write(QDataStream& stream) const;
   QDataStream& read(QDataStream& stream);
+
+  void layers(QList<int>& layers) const;
 
 private:
   QString m_name;

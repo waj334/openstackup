@@ -18,6 +18,7 @@ find_package(fmt REQUIRED)
 find_package(restinio CONFIG REQUIRED)
 
 set(srcs
+	delaymatchsolver.cxx
 	enums.cxx
 	layer.cxx
 	main.cxx
@@ -33,6 +34,7 @@ set(srcs
 	pluginserver.cxx
 	sessionmanager.cxx
 	signalpropagationdelaymodel.cxx
+	signalpropagationdelayproxymodel.cxx
 	stackupdelegate.cxx
 	stackupmodel.cxx
 	stackupproxymodel.cxx
@@ -55,7 +57,7 @@ set(qrc_files
 	resources.qrc
 )
 
-add_executable(openstackup ${srcs} ${ui_files} ${qrc_files})
+add_executable(openstackup ${srcs} ${ui_files} ${qrc_files} "delaymatchsolver.h")
 target_link_libraries(openstackup
 	PRIVATE
 		Qt5::Core

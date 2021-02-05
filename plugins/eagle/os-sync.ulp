@@ -36,10 +36,10 @@ string netJson(string name, string class, string wires)
 	return jsonObj;
 }
 
-string wireJson(int layer, real length)
+string wireJson(int layer, real length, real width)
 {
 	string jsonObj;
-	sprintf(jsonObj, "{\"layer\": %d, \"length\": %.9f}", layer, length);
+	sprintf(jsonObj, "{\"layer\": %d, \"length\": %.9f, \"width\": %.9f}", layer, length, width);
 	return jsonObj;
 }
 
@@ -72,7 +72,7 @@ int main(void)
 					}
 					
 					//Format wire JSON object
-					wires[wireIndex++] = wireJson(W.layer, length);
+					wires[wireIndex++] = wireJson(W.layer-1, length, u2mm(W.width));
 				}
 			}
 			

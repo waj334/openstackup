@@ -17,43 +17,19 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QSortFilterProxyModel>
 
-class SignalPropagationDelayProxyModel;
-
-namespace Ui {
-  class UIMainWindow;
-}
-
-class UIMainWindow : public QMainWindow {
+class SignalPropagationDelayProxyModel : public QSortFilterProxyModel {
   Q_OBJECT
 public:
-  explicit UIMainWindow(QWidget* parent = nullptr);
-  ~UIMainWindow();
+  SignalPropagationDelayProxyModel(QObject* parent = nullptr);
 
 public slots:
-  void onNewSession();
-  void onOpenSession();
-  bool onSaveSession();
-  void onSaveSessionAs();
-
-  void onSessionMarkedDirty(bool dirty);
-
-  void onAbout();
-  void onStackupSettings();
-  void onMaterials();
-
-  void onNetClicked(const QModelIndex& index);
-  void onNetClassClicked(const QModelIndex& index);
+  void onNetClassChanged(const QString& name);
 
 protected:
-  void closeEvent(QCloseEvent* event) override;
-
-private slots:
-  void updateWindowTitle();
-  void showProperties(QWidget* widget);
+  bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const override;
 
 private:
-  Ui::UIMainWindow* mp_ui;
-  SignalPropagationDelayProxyModel* mp_sigDelayProxyModel;
+  QString m_netClassName;
 };

@@ -45,12 +45,14 @@ public:
   const NetList& nets() const;
   void setNets(const NetList& nets);
   void updateNet(int index, const Net& net);
+  const NetClass& netClass(const Net& net);
 
   NetClassList& netClasses();
   const NetClassList& netClasses() const;
   void setNetClasses(const NetClassList& netClasses);
   void updateNetClass(int index, const NetClass& netClass);
   bool netClassExists(const QString& name) const;
+  const NetClass& defaultNetClass() const;
 
   void markSessionDirty();
   bool isSessionDirty() const;
@@ -72,6 +74,8 @@ private:
   LayerArray m_layers;
   NetList m_nets;
   NetClassList m_netClasses;
+  NetClass m_defaultNetClass;
+
   int m_layerCount = 2;
   bool m_sessionIsDirty = false;
   QString m_sessionFname;

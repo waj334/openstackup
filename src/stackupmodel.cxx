@@ -155,7 +155,7 @@ bool StackupModel::setData(const QModelIndex& index, const QVariant& value, int 
         break;
       }
 
-      SessionManager::instance()->updateLayer(index.internalId(), layer);
+      SessionManager::instance()->updateLayer(index.row(), layer);
 
       if (ok) {
         emit dataChanged(index, index, QVector<int>() << Qt::EditRole);

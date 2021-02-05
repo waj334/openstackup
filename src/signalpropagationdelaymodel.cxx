@@ -21,6 +21,8 @@
 
 #include <boost/functional/hash.hpp>
 
+constexpr double C = 0.299792; //speed of light in mm/ps
+
 SignalPropagationDelayModel::SignalPropagationDelayModel(QObject* parent) :
   QAbstractItemModel(parent)
 {
@@ -134,7 +136,10 @@ QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) c
     if (role == Qt::DisplayRole) {
       switch (index.column()) {
       case 0:
-        data = net.name();
+        //Only show name on parent nodes
+        if (!parent.isValid()) {
+          data = net.name();
+        }
         break;
       case 1:
         data = QString("%1 mm")
@@ -158,7 +163,7 @@ QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) c
             }
           }
 
-          data = QString("%1 ns")
+          data = QString("%1 ps")
             .arg(t);
         }
         break;
@@ -189,6 +194,9 @@ QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) c
         //Do nothing
         break;
       }
+    }
+    else if (role == NetRole) {
+      data = QVariant::fromValue<Net>(net);
     }
   }
 
@@ -277,13 +285,12 @@ double SignalPropagationDelayModel::calculateStriplineDelay( double length, doub
     const double er2 = dkList1[0].m_dk;
 
     double vp = 0;
-    const double c = 0.00333564; // speed of light mm/ns
 
     //Calculate effective dielectric constant
     double ee = (er1 * (h1 / (h1 + h2))) + (er2 * (h2 / (h1 + h2)));
 
     //Calculate propagation speed
-    vp = c / sqrt(ee);
+    vp = C / sqrt(ee);
 
     //Calculate time to reach length
     t = length / vp;
@@ -303,13 +310,12 @@ double SignalPropagationDelayModel::calculateMicrostripDelay(double length, doub
     const double er = dkList[0].m_dk;
 
     double vp = 0;
-    const double c = 0.00333564; // speed of light mm/ns
 
     //Calculate effective dielectric constant
     double ee = ((er + 1) / 2) + (((er - 1) / 2) * (1.0 / sqrt(1 + (12 * (layer.thickness() / traceWidth)))));
 
     //Calculate propagation speed
-    vp = c / sqrt(ee);
+    vp = C / sqrt(ee);
 
     //Calculate time to reach length
     t = length / vp;

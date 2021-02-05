@@ -22,6 +22,7 @@
 #include "netmodel.h"
 #include "sessionmanager.h"
 #include "signalpropagationdelaymodel.h"
+#include "signalpropagationdelayproxymodel.h"
 #include "uiabout.h"
 #include "uimaterials.h"
 #include "uinetproperties.h"
@@ -49,7 +50,11 @@ UIMainWindow::UIMainWindow(QWidget* parent) :
   //Set up signal propagation delay table
   SignalPropagationDelayModel* sigDelayModel 
     = new SignalPropagationDelayModel(this);
-  mp_ui->signalPropagationTable->setModel(sigDelayModel);
+
+  mp_sigDelayProxyModel = new SignalPropagationDelayProxyModel(this);
+  mp_sigDelayProxyModel->setSourceModel(sigDelayModel);
+
+  mp_ui->signalPropagationTable->setModel(mp_sigDelayProxyModel);
 
   connect(mp_ui->actionNew_Session, &QAction::triggered,
     this, &UIMainWindow::onNewSession);
@@ -233,6 +238,9 @@ void UIMainWindow::onNetClassClicked(const QModelIndex& index)
 {
   if (index.isValid()) {
     NetClass& netClass = SessionManager::instance()->netClasses()[index.row()];
+
+    mp_sigDelayProxyModel->onNetClassChanged(netClass.name());
+
     showProperties(nullptr);
   }
 }

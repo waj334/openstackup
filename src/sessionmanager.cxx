@@ -106,6 +106,17 @@ void SessionManager::updateNet(int index, const Net& net)
   emit sync();
 }
 
+const NetClass& SessionManager::netClass(const Net& net)
+{
+  for (const auto& netClass : m_netClasses) {
+    if (netClass.nets().contains(net.name())) {
+      return netClass;
+    }
+  }
+
+  return m_defaultNetClass;
+}
+
 NetClassList& SessionManager::netClasses()
 {
   QReadLocker locker(&m_ioLock);
@@ -150,6 +161,11 @@ bool SessionManager::netClassExists(const QString& name) const
   }
   
   return result;
+}
+
+const NetClass& SessionManager::defaultNetClass() const
+{
+  return m_defaultNetClass;
 }
 
 void SessionManager::markSessionDirty()

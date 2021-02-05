@@ -141,11 +141,30 @@ QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) c
           .arg(net.length(layer), 0, 'f', 6);
         break;
       case 2:
-        data = "TBD";
+        {
+          double t = 0;
+          if (layer >= 0) {
+            t = calculateDelay(layer, net.length(layer), net.width(layer));
+          }
+          else {
+            QList<int> layerIds;
+            net.layers(layerIds);
+
+            //Total delay
+            if (!layerIds.isEmpty()) {
+              for (int layer : layerIds) {
+                t += calculateDelay(layer, net.length(layer), net.width(layer));
+              }
+            }
+          }
+
+          data = QString("%1 ns")
+            .arg(t);
+        }
         break;
       case 3:
         if (layer >= 0) {
-          data = QString::number(layer + 1);
+          data = QString::number(layer);
         }
         else {
           QString layerStr;
@@ -154,12 +173,12 @@ QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) c
           net.layers(layerIds);
 
           if (!layerIds.isEmpty()) {
-            layerStr = QString::number(layerIds.takeFirst() + 1);
+            layerStr = QString::number(layerIds.takeFirst());
 
             for (int layer : layerIds) {
               layerStr = QString("%1, %2")
                 .arg(layerStr)
-                .arg(layer + 1);
+                .arg(layer);
             }
 
             data = layerStr;
@@ -208,21 +227,92 @@ QVariant SignalPropagationDelayModel::headerData(int section, Qt::Orientation or
   return data;
 }
 
-double SignalPropagationDelayModel::calculateDelay(int layer, double length)
+double SignalPropagationDelayModel::calculateDelay(int layer, double length, double traceWidth) const
 {
-  double t = 0.;
-  double er = 1;
-  double vp = 0;
-  const double v = 0.00333564; // mm/s
+  double t = 0;
 
-  const Layer& _layer = SessionManager::instance()->layers()[layer * 2 + 1];
-
-  //Is layer an outer layer?
-  if (layer == 0 || layer == 15) {
-    
+  if (layer == 0) {
+    // On the top layer, the dielectric material should
+    // always be below the copper.
+    const Layer& _layer = SessionManager::instance()->layers()[1];
+    t = calculateMicrostripDelay(length, traceWidth, _layer);
+  }
+  else if (layer == 15) {
+    // On the top layer, the dielectric material should
+    // always be above the copper.
+    const Layer& _layer = SessionManager::instance()->layers()[29];
+    t = calculateMicrostripDelay(length, traceWidth, _layer);
   }
   else {
-    
+    // All other layers will have material above and below the copper
+    std::array<Layer,2> layers;
+
+    int copperLayer = layer * 2;
+
+    layers[0] = SessionManager::instance()->layers()[copperLayer-1];
+    layers[1] = SessionManager::instance()->layers()[copperLayer+1];
+
+    t = calculateStriplineDelay(length, traceWidth, layers);
+  }
+
+  return t;
+}
+
+double SignalPropagationDelayModel::calculateStriplineDelay( double length, double traceWidth, const std::array<Layer,2>& layers) const
+{
+  double t = 0;
+
+  const auto& layer0 = layers[0];
+  const auto& layer1 = layers[1];
+
+  const auto& dkList0 = layer0.material().permittivityList();
+  const auto& dkList1 = layer1.material().permittivityList();
+
+  const double h1 = layer0.thickness();
+  const double h2 = layer1.thickness();
+
+  if (!dkList0.empty() && !dkList1.empty()) {
+    //TODO: Pick dk based on frequency of transmission
+    const double er1 = dkList0[0].m_dk;
+    const double er2 = dkList1[0].m_dk;
+
+    double vp = 0;
+    const double c = 0.00333564; // speed of light mm/ns
+
+    //Calculate effective dielectric constant
+    double ee = (er1 * (h1 / (h1 + h2))) + (er2 * (h2 / (h1 + h2)));
+
+    //Calculate propagation speed
+    vp = c / sqrt(ee);
+
+    //Calculate time to reach length
+    t = length / vp;
+  }
+
+  return t;
+}
+
+double SignalPropagationDelayModel::calculateMicrostripDelay(double length, double traceWidth, const Layer& layer) const
+{
+  double t = 0;
+
+  const auto& dkList = layer.material().permittivityList();
+
+  if (!dkList.empty()) {
+    //TODO: Pick dk based on frequency of transmission
+    const double er = dkList[0].m_dk;
+
+    double vp = 0;
+    const double c = 0.00333564; // speed of light mm/ns
+
+    //Calculate effective dielectric constant
+    double ee = ((er + 1) / 2) + (((er - 1) / 2) * (1.0 / sqrt(1 + (12 * (layer.thickness() / traceWidth)))));
+
+    //Calculate propagation speed
+    vp = c / sqrt(ee);
+
+    //Calculate time to reach length
+    t = length / vp;
   }
 
   return t;

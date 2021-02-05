@@ -26,6 +26,7 @@ class Net {
 public:
   struct Wire {
     double m_length;
+    double m_width;
     int m_layer;
   };
 
@@ -43,6 +44,7 @@ public:
   WireList& wires();
   const WireList& wires() const;
   void updateWire(int index, const Wire& wire);
+  double width(int layer = -1) const;
 
   static int version();
   QDataStream& write(QDataStream& stream) const;

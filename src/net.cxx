@@ -75,6 +75,25 @@ void Net::updateWire(int index, const Wire& wire)
   }
 }
 
+double Net::width(int layer) const
+{
+  double w = 0;
+  
+  //Find the width of the most thin run of wire
+  for (const auto& wire : m_wires) {
+    if (layer == -1 || wire.m_layer == layer) {
+      if (w == 0) {
+        w = wire.m_width;
+      }
+      else if (wire.m_width < w) {
+        w = wire.m_width;
+      }
+    }
+  }
+
+  return w;
+}
+
 int Net::version()
 {
   return NET_VERSION;
@@ -88,7 +107,7 @@ QDataStream& Net::write(QDataStream& stream) const {
 
   stream << m_wires.count();
   for (const auto& wire : m_wires) {
-    stream << wire.m_layer << wire.m_length;
+    stream << wire.m_layer << wire.m_length << wire.m_width;
   }
 
   return stream;
@@ -129,7 +148,7 @@ void Net::readV0(QDataStream& stream)
 
   for (int i = 0; i < count; ++i) {
     Wire wire;
-    stream >> wire.m_layer >> wire.m_length;
+    stream >> wire.m_layer >> wire.m_length >> wire.m_width;
 
     m_wires << wire;
   }

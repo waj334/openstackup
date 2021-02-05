@@ -42,7 +42,7 @@ private slots:
 private:
   mutable QMap<size_t, QModelIndex> m_parentMap;
 
-  double calculateDelay(int layer, double length);
-  double calculateStriplineDelay(double er, double length);
-  double calculateMicrostripDelay(double er, double length);
+  double calculateDelay(int layer, double length, double traceWidth) const;
+  double calculateStriplineDelay(double length, double traceWidth, const std::array<Layer,2> &layers) const;
+  double calculateMicrostripDelay(double length, double traceWidth, const Layer& layer) const;
 };

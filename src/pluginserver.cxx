@@ -106,6 +106,7 @@ std::unique_ptr<PluginServer::router_t> PluginServer::router()
               Net::Wire wire;
               wire.m_layer = obj["layer"].toInt();
               wire.m_length = obj["length"].toDouble();
+              wire.m_width = obj["width"].toDouble();
               
               auto& wires = net.wires();
               wires << wire;

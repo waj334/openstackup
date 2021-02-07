@@ -77,6 +77,11 @@ UIMainWindow::UIMainWindow(QWidget* parent) :
   connect(mp_ui->netClassesTable, &QTableView::clicked,
     this, &UIMainWindow::onNetClassClicked);
 
+  connect(mp_ui->spdExpandAllButton, &QPushButton::clicked,
+    mp_ui->signalPropagationTable, &QTreeView::expandAll);
+  connect(mp_ui->spdCollapseAllButton, &QPushButton::clicked,
+    mp_ui->signalPropagationTable, &QTreeView::collapseAll);
+
   connect(SessionManager::instance().get(), &SessionManager::sessionMarkedDirty,
     this, &UIMainWindow::onSessionMarkedDirty, Qt::QueuedConnection);
   connect(SessionManager::instance().get(), &SessionManager::sessionChanged,

@@ -108,7 +108,7 @@ int SignalPropagationDelayModel::rowCount(const QModelIndex& parent) const
 
 int SignalPropagationDelayModel::columnCount(const QModelIndex& parent) const
 {
-  return 4;
+  return 5;
 }
 
 QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) const
@@ -133,6 +133,14 @@ QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) c
       net = nets[index.row()];
     }
 
+    NetClass _class = SessionManager::instance()->netClass(net);
+
+    size_t hash = boost::hash_value(net.name().toStdString());
+    
+    if (layer >= 0) {
+      boost::hash_combine(hash, layer);
+    }
+
     if (role == Qt::DisplayRole) {
       switch (index.column()) {
       case 0:
@@ -142,32 +150,6 @@ QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) c
         }
         break;
       case 1:
-        data = QString("%1 mm")
-          .arg(net.length(layer), 0, 'f', 6);
-        break;
-      case 2:
-        {
-          double t = 0;
-          if (layer >= 0) {
-            t = calculateDelay(layer, net.length(layer), net.width(layer));
-          }
-          else {
-            QList<int> layerIds;
-            net.layers(layerIds);
-
-            //Total delay
-            if (!layerIds.isEmpty()) {
-              for (int layer : layerIds) {
-                t += calculateDelay(layer, net.length(layer), net.width(layer));
-              }
-            }
-          }
-
-          data = QString("%1 ps")
-            .arg(t);
-        }
-        break;
-      case 3:
         if (layer >= 0) {
           data = QString::number(layer);
         }
@@ -188,6 +170,47 @@ QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) c
 
             data = layerStr;
           }
+        }
+        break;
+      case 2:
+        {
+          double t = 0;
+          if (layer >= 0) {
+            t = m_traceMap[hash].delay;
+          }
+          else {
+            QList<int> layerIds;
+            net.layers(layerIds);
+
+            //Total delay
+            if (!layerIds.isEmpty()) {
+              for (int layer : layerIds) {
+                size_t layerHash = hash;
+                boost::hash_combine(layerHash, layer);
+
+                t += m_traceMap[layerHash].delay;
+              }
+            }
+          }
+
+          data = QString("%1 ps")
+            .arg(t);
+        }
+        break;
+      case 3:
+        data = QString("%1 mm")
+          .arg(net.length(layer), 0, 'f', 6);
+        break;
+      case 4:
+        if (layer >= 0) {
+          const double& maxDelay = m_delayMap[_class.name()];
+          const double& dk = m_traceMap[hash].dk;
+
+          const double dt = maxDelay - m_traceMap[hash].delay;
+          const double dl = calculateMatchedLength(dt, dk);
+
+          data = QString("%1 mm")
+            .arg(net.length(layer) + dl, 0, 'f', 6);
         }
         break;
       default:
@@ -214,13 +237,16 @@ QVariant SignalPropagationDelayModel::headerData(int section, Qt::Orientation or
         data = "Net";
         break;
       case 1:
-        data = "Length";
+        data = "Layer";
         break;
       case 2:
         data = "Delay";
         break;
       case 3:
-        data = "Layer";
+        data = "Length";
+        break;
+      case 4:
+        data = "Delay Matched Length";
         break;
       default:
         //Do nothing
@@ -324,9 +350,126 @@ double SignalPropagationDelayModel::calculateMicrostripDelay(double length, doub
   return t;
 }
 
+double SignalPropagationDelayModel::calculateEffectiveDk(double traceWidth, const Layer& layer) const
+{
+  double dk = 0;
+
+  const auto& dkList = layer.material().permittivityList();
+
+  if (!dkList.empty()) {
+    //TODO: Pick dk based on frequency of transmission
+    const double er = dkList[0].m_dk;
+
+    dk = ((er + 1) / 2) + (((er - 1) / 2) * (1.0 / sqrt(1 + (12 * (layer.thickness() / traceWidth)))));
+  }
+
+  return dk;
+}
+
+double SignalPropagationDelayModel::calculateEffectiveDk(double traceWidth, const std::array<Layer, 2>& layers) const
+{
+  double dk = 0;
+
+  const auto& layer0 = layers[0];
+  const auto& layer1 = layers[1];
+
+  const auto& dkList0 = layer0.material().permittivityList();
+  const auto& dkList1 = layer1.material().permittivityList();
+
+  const double h1 = layer0.thickness();
+  const double h2 = layer1.thickness();
+
+  if (!dkList0.empty() && !dkList1.empty()) {
+    //TODO: Pick dk based on frequency of transmission
+    const double er1 = dkList0[0].m_dk;
+    const double er2 = dkList1[0].m_dk;
+
+    //Calculate effective dielectric constant
+    dk = (er1 * (h1 / (h1 + h2))) + (er2 * (h2 / (h1 + h2)));
+  }
+
+  return dk;
+}
+
+double SignalPropagationDelayModel::calculateDelay(double traceLength, double dk) const
+{
+  const double vp = C / sqrt(dk);
+  return traceLength / vp;
+}
+
+double SignalPropagationDelayModel::calculateMatchedLength(double t, double dk) const
+{
+  return (t * C) / sqrt(dk);
+}
+
 void SignalPropagationDelayModel::onSync()
 {
   emit beginResetModel();
   m_parentMap.clear();
+  m_traceMap.clear();
+  m_delayMap.clear();
+
+  //Precompute
+  const NetList& nets = SessionManager::instance()->nets();
+
+  for (const auto& net : nets) {
+    //Create hash for net
+    size_t netHash = boost::hash_value(net.name().toStdString());
+
+    QList<int> layerIds;
+    net.layers(layerIds);
+
+    NetClass _class = SessionManager::instance()->netClass(net);
+    if (!m_delayMap.keys().contains(_class.name())) {
+      m_delayMap[_class.name()] = 0;
+    }
+
+    double& netClassMaxDelay = m_delayMap[_class.name()];
+    double totalDelay = 0;
+
+    for (const int& layerNumber : layerIds) {
+      size_t layerHash = netHash;
+      boost::hash_combine(layerHash, layerNumber);
+
+      const double traceWidth = net.width(layerNumber);
+      const double length = net.length(layerNumber);
+      double dk = 0;
+
+      if (layerNumber == 0) {
+        // On the top layer, the dielectric material should
+        // always be below the copper.
+        const Layer& layer = SessionManager::instance()->layers()[1];
+        dk = calculateEffectiveDk(traceWidth, layer);
+      }
+      else if (layerNumber == 15) {
+        // On the top layer, the dielectric material should
+        // always be above the copper.
+        const Layer& layer = SessionManager::instance()->layers()[29];
+        dk = calculateEffectiveDk(traceWidth, layer);
+      }
+      else {
+        // All other layers will have material above and below the copper
+        std::array<Layer, 2> layers;
+
+        int copperLayer = layerNumber * 2;
+
+        layers[0] = SessionManager::instance()->layers()[copperLayer - 1];
+        layers[1] = SessionManager::instance()->layers()[copperLayer + 1];
+
+        dk = calculateEffectiveDk(traceWidth, layers);
+      }
+
+      m_traceMap[layerHash].dk = dk;
+      m_traceMap[layerHash].delay = calculateDelay(length, dk);
+
+      //Add to delay for this net
+      totalDelay += m_traceMap[layerHash].delay;
+    }
+
+    if (totalDelay > netClassMaxDelay) {
+      netClassMaxDelay = totalDelay;
+    }
+  }
+
   emit endResetModel();
 }

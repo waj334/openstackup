@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "net.h"
+
 #include <QAbstractTableModel>
 
 #include <QMap>
@@ -49,4 +51,17 @@ private:
   double calculateDelay(int layer, double length, double traceWidth) const;
   double calculateStriplineDelay(double length, double traceWidth, const std::array<Layer,2> &layers) const;
   double calculateMicrostripDelay(double length, double traceWidth, const Layer& layer) const;
+
+  double calculateEffectiveDk(double traceWidth, const Layer& layer) const;
+  double calculateEffectiveDk(double traceWidth, const std::array<Layer, 2>& layers) const;
+  double calculateDelay(double traceLength, double dk) const;
+  double calculateMatchedLength(double t, double dk) const;
+
+  struct TraceInfo {
+    double dk = 0;
+    double delay = 0;
+  };
+
+  QMap<size_t, TraceInfo> m_traceMap;
+  QMap<QString, double> m_delayMap;
 };

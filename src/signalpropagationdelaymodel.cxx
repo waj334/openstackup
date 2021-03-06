@@ -1,6 +1,6 @@
 /*
  * This file is part of the Open Stackup distribution (https://github.com/waj334/openstackup).
- * Copyright (c) 2015 Liviu Ionescu.
+ * Copyright (c) 2021 Justin A. Wilson.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,90 +133,11 @@ QVariant SignalPropagationDelayModel::data(const QModelIndex& index, int role) c
       net = nets[index.row()];
     }
 
-    NetClass _class = SessionManager::instance()->netClass(net);
-
-    size_t hash = boost::hash_value(net.name().toStdString());
-    
-    if (layer >= 0) {
-      boost::hash_combine(hash, layer);
-    }
-
     if (role == Qt::DisplayRole) {
-      switch (index.column()) {
-      case 0:
-        //Only show name on parent nodes
-        if (!parent.isValid()) {
-          data = net.name();
-        }
-        break;
-      case 1:
-        if (layer >= 0) {
-          data = QString::number(layer);
-        }
-        else {
-          QString layerStr;
-
-          QList<int> layerIds;
-          net.layers(layerIds);
-
-          if (!layerIds.isEmpty()) {
-            layerStr = QString::number(layerIds.takeFirst());
-
-            for (int layer : layerIds) {
-              layerStr = QString("%1, %2")
-                .arg(layerStr)
-                .arg(layer);
-            }
-
-            data = layerStr;
-          }
-        }
-        break;
-      case 2:
-        {
-          double t = 0;
-          if (layer >= 0) {
-            t = m_traceMap[hash].delay;
-          }
-          else {
-            QList<int> layerIds;
-            net.layers(layerIds);
-
-            //Total delay
-            if (!layerIds.isEmpty()) {
-              for (int layer : layerIds) {
-                size_t layerHash = hash;
-                boost::hash_combine(layerHash, layer);
-
-                t += m_traceMap[layerHash].delay;
-              }
-            }
-          }
-
-          data = QString("%1 ps")
-            .arg(t);
-        }
-        break;
-      case 3:
-        data = QString("%1 mm")
-          .arg(net.length(layer), 0, 'f', 6);
-        break;
-      case 4:
-        if (layer >= 0) {
-          const double& maxDelay = m_delayMap[_class.name()];
-          const double& dk = m_traceMap[hash].dk;
-
-          const double dt = maxDelay - m_traceMap[hash].delay;
-          const double dl = calculateMatchedLength(dt, dk);
-
-          data = QString("%1 mm")
-            .arg(net.length(layer) + dl, 0, 'f', 6);
-        }
-        break;
-      default:
-        //Do nothing
-        break;
-      }
+      data = displayRole(index.column(), net, layer);
+    }
+    else if (role == Qt::EditRole) {
+      data = editRole(index.column(), net, layer);
     }
     else if (role == NetRole) {
       data = QVariant::fromValue<Net>(net);
@@ -256,6 +177,175 @@ QVariant SignalPropagationDelayModel::headerData(int section, Qt::Orientation or
   }
   else if (orientation == Qt::Vertical) {
 
+  }
+
+  return data;
+}
+
+QVariant SignalPropagationDelayModel::displayRole(int column, const Net& net, int layer) const
+{
+  QVariant data;
+  NetClass _class = SessionManager::instance()->netClass(net);
+  size_t hash = boost::hash_value(net.name().toStdString());
+
+  if (layer >= 0) {
+    boost::hash_combine(hash, layer);
+  }
+
+  switch (column) {
+  case 0:
+    //Only show name on parent nodes
+    if (layer == -1) {
+      data = net.name();
+    }
+    break;
+  case 1:
+    if (layer >= 0) {
+      data = QString::number(layer);
+    }
+    else {
+      QString layerStr;
+
+      QList<int> layerIds;
+      net.layers(layerIds);
+
+      if (!layerIds.isEmpty()) {
+        layerStr = QString::number(layerIds.takeFirst());
+
+        for (int layer : layerIds) {
+          layerStr = QString("%1, %2")
+            .arg(layerStr)
+            .arg(layer);
+        }
+
+        data = layerStr;
+      }
+    }
+    break;
+  case 2:
+  {
+    double t = 0;
+    if (layer >= 0) {
+      t = m_traceMap[hash].delay;
+    }
+    else {
+      QList<int> layerIds;
+      net.layers(layerIds);
+
+      //Total delay
+      if (!layerIds.isEmpty()) {
+        for (int layer : layerIds) {
+          size_t layerHash = hash;
+          boost::hash_combine(layerHash, layer);
+
+          t += m_traceMap[layerHash].delay;
+        }
+      }
+    }
+
+    data = QString("%1 ps")
+      .arg(t);
+  }
+  break;
+  case 3:
+    data = QString("%1 mm")
+      .arg(net.length(layer), 0, 'f', 6);
+    break;
+  case 4:
+    if (layer >= 0) {
+      const double& maxDelay = m_delayMap[_class.name()];
+      const double& dk = m_traceMap[hash].dk;
+
+      const double dt = maxDelay - m_netDelayMap[net.name()];
+      double length = calculateMatchedLength(dt, dk);
+
+      // Add existing lengths to get total recommended length when
+      // extending wire on current layer.
+      QList<int> layerIds;
+      net.layers(layerIds);
+
+      for (const auto& id : layerIds) {
+        length += net.length(id);
+      }
+
+      data = QString("%1 mm")
+        .arg(length, 0, 'f', 6);
+    }
+    break;
+  default:
+    //Do nothing
+    break;
+  }
+
+  return data;
+}
+
+QVariant SignalPropagationDelayModel::editRole(int column, const Net& net, int layer) const
+{
+  QVariant data;
+  NetClass _class = SessionManager::instance()->netClass(net);
+  size_t hash = boost::hash_value(net.name().toStdString());
+
+  if (layer >= 0) {
+    boost::hash_combine(hash, layer);
+  }
+
+  switch (column) {
+  case 0:
+    data = net.name();
+    break;
+  case 1:
+    data = layer;
+    break;
+  case 2:
+  {
+    double t = 0;
+    if (layer >= 0) {
+      t = m_traceMap[hash].delay;
+    }
+    else {
+      QList<int> layerIds;
+      net.layers(layerIds);
+
+      //Total delay
+      if (!layerIds.isEmpty()) {
+        for (int layer : layerIds) {
+          size_t layerHash = hash;
+          boost::hash_combine(layerHash, layer);
+
+          t += m_traceMap[layerHash].delay;
+        }
+      }
+    }
+
+    data = t;
+  }
+    break;
+  case 3:
+    data = net.length(layer);
+    break;
+  case 4:
+    if (layer >= 0) {
+      const double& maxDelay = m_delayMap[_class.name()];
+      const double& dk = m_traceMap[hash].dk;
+      const double dt = maxDelay - m_netDelayMap[net.name()];
+      double length = calculateMatchedLength(dt, dk);
+
+      // Add existing lengths to get total recommended length when
+      // extending wire on current layer.
+      QList<int> layerIds;
+      net.layers(layerIds);
+
+      for (const auto& id : layerIds) {
+        length += net.length(id);
+      }
+
+      data = length;
+    }
+    break;
+  default:
+    //Do nothing
+    break;
   }
 
   return data;
@@ -464,11 +554,14 @@ void SignalPropagationDelayModel::onSync()
 
       //Add to delay for this net
       totalDelay += m_traceMap[layerHash].delay;
+
     }
 
     if (totalDelay > netClassMaxDelay) {
       netClassMaxDelay = totalDelay;
     }
+
+    m_netDelayMap[net.name()] = totalDelay;
   }
 
   emit endResetModel();

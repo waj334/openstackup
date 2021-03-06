@@ -1,6 +1,6 @@
 /*
  * This file is part of the Open Stackup distribution (https://github.com/waj334/openstackup).
- * Copyright (c) 2015 Liviu Ionescu.
+ * Copyright (c) 2021 Justin A. Wilson.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "uistackup.h"
 
 #include <QApplication>
+#include <QClipboard>
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -53,6 +54,7 @@ UIMainWindow::UIMainWindow(QWidget* parent) :
 
   mp_sigDelayProxyModel = new SignalPropagationDelayProxyModel(this);
   mp_sigDelayProxyModel->setSourceModel(sigDelayModel);
+  mp_sigDelayProxyModel->setSortRole(Qt::EditRole);
 
   mp_ui->signalPropagationTable->setModel(mp_sigDelayProxyModel);
 
@@ -77,6 +79,8 @@ UIMainWindow::UIMainWindow(QWidget* parent) :
   connect(mp_ui->netClassesTable, &QTableView::clicked,
     this, &UIMainWindow::onNetClassClicked);
 
+  connect(mp_ui->signalPropagationTable, &QAbstractItemView::doubleClicked,
+    this, &UIMainWindow::onCellDoubleClicked);
   connect(mp_ui->spdExpandAllButton, &QPushButton::clicked,
     mp_ui->signalPropagationTable, &QTreeView::expandAll);
   connect(mp_ui->spdCollapseAllButton, &QPushButton::clicked,
@@ -248,6 +252,13 @@ void UIMainWindow::onNetClassClicked(const QModelIndex& index)
 
     showProperties(nullptr);
   }
+}
+
+void UIMainWindow::onCellDoubleClicked(const QModelIndex& index)
+{
+  //Copy display text to clipboard
+  QApplication::clipboard()
+    ->setText(index.data(Qt::DisplayRole).toString());
 }
 
 void UIMainWindow::updateWindowTitle()

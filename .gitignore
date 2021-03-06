@@ -33,3 +33,4 @@
 /CMakeSettings.json
 /.vs
 /out/build/x64-Debug
+/enc_temp_folder

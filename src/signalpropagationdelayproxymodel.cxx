@@ -1,6 +1,6 @@
 /*
  * This file is part of the Open Stackup distribution (https://github.com/waj334/openstackup).
- * Copyright (c) 2015 Liviu Ionescu.
+ * Copyright (c) 2021 Justin A. Wilson.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

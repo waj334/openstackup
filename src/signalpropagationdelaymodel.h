@@ -1,6 +1,6 @@
 /*
  * This file is part of the Open Stackup distribution (https://github.com/waj334/openstackup).
- * Copyright (c) 2015 Liviu Ionescu.
+ * Copyright (c) 2021 Justin A. Wilson.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,9 @@ private slots:
 private:
   mutable QMap<size_t, QModelIndex> m_parentMap;
 
+  QVariant displayRole(int column, const Net& net, int layer) const;
+  QVariant editRole(int column, const Net& net, int layer) const;
+
   double calculateDelay(int layer, double length, double traceWidth) const;
   double calculateStriplineDelay(double length, double traceWidth, const std::array<Layer,2> &layers) const;
   double calculateMicrostripDelay(double length, double traceWidth, const Layer& layer) const;
@@ -64,4 +67,5 @@ private:
 
   QMap<size_t, TraceInfo> m_traceMap;
   QMap<QString, double> m_delayMap;
+  QMap<QString, double> m_netDelayMap;
 };

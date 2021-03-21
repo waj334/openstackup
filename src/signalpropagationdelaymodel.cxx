@@ -201,7 +201,7 @@ QVariant SignalPropagationDelayModel::displayRole(int column, const Net& net, in
     break;
   case 1:
     if (layer >= 0) {
-      data = QString::number(layer);
+      data = QString::number(layer + 1);
     }
     else {
       QString layerStr;
@@ -215,7 +215,7 @@ QVariant SignalPropagationDelayModel::displayRole(int column, const Net& net, in
         for (int layer : layerIds) {
           layerStr = QString("%1, %2")
             .arg(layerStr)
-            .arg(layer);
+            .arg(layer + 1);
         }
 
         data = layerStr;
@@ -539,14 +539,31 @@ void SignalPropagationDelayModel::onSync()
       }
       else {
         // All other layers will have material above and below the copper
-        std::array<Layer, 2> layers;
+        std::array<Layer, 2> dielectricLayers;
 
         int copperLayer = layerNumber * 2;
 
-        layers[0] = SessionManager::instance()->layers()[copperLayer - 1];
-        layers[1] = SessionManager::instance()->layers()[copperLayer + 1];
+        const auto& layers = SessionManager::instance()->layers();
 
-        dk = calculateEffectiveDk(traceWidth, layers);
+        //Find upper dielectric
+        for (int i = copperLayer - 1; i >= 0; --i) {
+          const auto& layer = layers[i];
+          if (layer.materialClass() != MaterialClass::NONE) {
+            dielectricLayers[0] = layer;
+            break;
+          }
+        }
+
+        //Find lower dielectric
+        for (int i = copperLayer + 1; i < 30; ++i) {
+          const auto& layer = layers[i];
+          if (layer.materialClass() != MaterialClass::NONE) {
+            dielectricLayers[1] = layer;
+            break;
+          }
+        }
+
+        dk = calculateEffectiveDk(traceWidth, dielectricLayers);
       }
 
       m_traceMap[layerHash].dk = dk;
